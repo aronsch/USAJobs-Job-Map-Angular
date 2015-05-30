@@ -159,7 +159,7 @@
 					if (visibleCount !== marker.jobCount && visibleCount > 0) {
 						$scope.updatePopup(marker);
 					}
-					
+
 					// If a marker has changed state, add it to the appropriate
 					// batch operation collection.
 					if (!visible && marker.visible) {
@@ -173,8 +173,7 @@
 						marker.visible = true;
 						show.push(marker);
 					}
-				} else return;
-				
+				}
 			}, this);
 			
 			// Perform batch marker updates.
@@ -688,7 +687,6 @@
 			cluster : {
 				miniIconURL : settings.assets.jobLocation.miniIconUrl,
 				clusterContent : function (cluster) {
-					// TODO: User user-provided content function if defined
 					
 					var i, len, rowItems, div, wrapper, img;
 					
@@ -863,7 +861,7 @@
 	}
 	
 	/**
-	 * Alaska Control TODO: Replace with general purpose view reset control
+	 * Alaska View Control
 	 */
 	mapResetControl.$inject = [ 'leaflet' ];
 	function mapResetControl (leaflet) {

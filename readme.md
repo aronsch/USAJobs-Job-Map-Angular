@@ -1,8 +1,8 @@
-# [USA Jobs](https://www.usajobs.gov) Map
+# [USA Jobs](https://www.usajobs.gov) Job Listing Map
 
 An Angular app for browsing jobs listed on [USAJobs.gov](https://www.usajobs.gov).
 
-## Use
+## Usage
 
 The app has four modular UI components:
 - `<job-map></job-map>` Displays the jobs on a [Leaflet.js](http://leafletjs.com) map.
@@ -12,7 +12,7 @@ The app has four modular UI components:
 
 To start the app, define the following attributes on the app element:
 - `org-id` The [Federal agency sub-element org code](https://schemas.usajobs.gov/Enumerations/AgencySubElement.xml).
-- `org-name` The name of the organization, for display in the `<job-info>` element.
+- `org-name` The name of the organization for display in the `<job-info>` element.
 
 ### Example
 ```

@@ -119,15 +119,7 @@
 				attributed : false,
 				attribute : function (api) {
 					// Add service attribution if geocoding request is made
-					if (this.attributed) return;
 					// TODO: angularize custom attribution
-					// Map.leafletMap.attributionControl
-					// .addAttribution('<a target="_blank" href="'
-					// + api.infoURL + '"'
-					// + ' title="Duty station locations geocoded by '+ api.name
-					// + '">'
-					// + api.name + '</a>');
-					// this.attributed = true;
 				}
 			},
 			geonames : {
@@ -263,11 +255,11 @@
 							+ "\r\nStatus Message: " + data.status 
 							+ "\r\nError Message: " + data.error_message);
 					location.hasNoGeodata('Geolocation service over query limit');
-					return
+
 				} else if (data.results.length === 0) {
 					// If there are no geocode results
 					location.hasNoGeodata('Location not found');
-					return;
+
 				} else {
 					// set the location's geodata if there are no errors
 					geoLoc = scope.api.normalizeResponse(data);
@@ -294,7 +286,7 @@
 			},
 			returned : function () {
 				this.returnedCount += 1;
-				// TODO: Integrate this into data module
+				// TODO: See if this status tool is still needed.
 			},
 			requestCount : 0,
 			returnedCount : 0,
@@ -366,7 +358,7 @@
 				this.geodata = locs;
 				// Skip caching in non-HTML5 browsers
 				if (!window.localStorage) {
-					return;
+
 				} else {
 					
 					localStorage.geodataCache = JSON.stringify(locs);

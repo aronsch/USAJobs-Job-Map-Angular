@@ -25,8 +25,8 @@
 	 * Functions
 	 */
 
-	Jobs.$inject = [ '$http', '$filter', 'settings', 'eventService', 'unique', 'Job', 'eventService' ];
-	function Jobs ($http, $filter, settings, events, unique, Job, Events) {
+	Jobs.$inject = [ '$http', 'settings', 'unique', 'Job', 'eventService' ];
+	function Jobs ($http, settings, unique, Job, Events) {
 		
 		var self = this; // closure reference to `this` for callback
 		// functions
@@ -61,9 +61,8 @@
 				NumberOfJobs : 250,
 				OrganizationID : this.orgId
 			});
-		};
-		
-		/**
+        }
+        /**
 		 * @public Query USA Jobs with provided request parameters
 		 * @param params
 		 *            {Object}
@@ -227,7 +226,8 @@
 			var now = moment();
 			// attach jobData properties to job object
 			angular.extend(this, jobData);
-			
+
+            // FIXME: Provide date formats - Moment will require this in future versions.
 			this.daysRemaining = moment(this.EndDate).diff(now, 'days');
 			this.daysOpen = moment(now).diff(this.StartDate, 'days');
 			this.endDateDescription = $filter('datedescription')(this.EndDate);
