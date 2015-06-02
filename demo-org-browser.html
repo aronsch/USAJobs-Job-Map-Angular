@@ -10,7 +10,9 @@
     <link href="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js" rel="stylesheet" type="text/css">
     <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<!-- USAJobsApp CSS -->
     <link href="css/usa-jobs-map.css" rel="stylesheet" type="text/css">
+<!-- Page CSS -->
     <style type="text/css">
         * {
         font-family: "open sans", helvetica, sans-serif
@@ -65,6 +67,10 @@
             angular.module('UsaJobsApp').directive('orgBrowser', orgBrowserDirective);
             angular.module('UsaJobsApp').controller('orgBrowserController', orgBrowserController);
 
+			/**
+			 * Directive providing dropdown for selecting from a list of Federal Government organizations
+			 * from USAJobs.gov XML reference file.
+			 */
             function orgBrowserDirective () {
                 var tmplt = '';
                 tmplt += '<div class="form form-horizontal">';
@@ -77,7 +83,11 @@
                     template : tmplt
                 };
             }
-
+            
+            /**
+			 * Controller for Directive providing dropdown for selecting from a list of Federal Government organizations
+			 * from USAJobs.gov XML reference file.
+			 */
             orgBrowserController.$inject = [ '$scope', 'Jobs', '$http', 'unique' ]
             function orgBrowserController ($scope, Jobs, $http, unique) {
                 $scope.jobs = Jobs;
@@ -88,12 +98,13 @@
                 // Trigger on selection change
                 $scope.$watch('selectedOrg', onOrgSelected);
 
+				// Retrieve Federal agency sub-element XML reference document from USAJobs.gov
                 $http.get('https://schemas.usajobs.gov/Enumerations/AgencySubElement.xml')
                         .success(agencyXmlDocResolved);
 
                 /**
-                 * Returns all
-                 * @returns {Array}
+                 * Returns list of agencies that will be displayed in dropdown.
+                 * @returns { Array }
                  */
                 function agencyOptions () {
                     var opts = [];
@@ -104,7 +115,11 @@
                     });
                     return opts;
                 }
-
+                
+                /**
+                 * Update Jobs data service org settings, then request new job results
+                 * for current organization.
+                 */
                 function onOrgSelected(org) {
                     if (angular.isDefined(org.Code) && angular.isDefined(org.Value)) {
                         $scope.jobs.orgId = org.Code;
@@ -115,11 +130,9 @@
 
                 function agencyXmlDocResolved (data) {
                     var x2js = new X2JS(), json = x2js.xml_str2json(data);
-                    //groupByParent(x2js.xml_str2json(data));
                     addParentNames(json);
                     $scope.agencies = json.CodeLists.CodeList.ValidValue;
                     sortAgencies();
-                    console.log($scope.agencies);
                 }
 
                 function sortAgencies () {
@@ -131,7 +144,6 @@
                                 if (a.Value < b.Value) {
                                     return -1;
                                 }
-                                // a must be equal to b
                                 return 0;
                             });
                 }
@@ -165,15 +177,9 @@
                             org.ParentName = '';
                         }
                     });
-
-
-
                 }
-
             }
         })();
-
-
     </script>
 </body>
 </html>
