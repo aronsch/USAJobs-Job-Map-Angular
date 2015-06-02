@@ -10,7 +10,11 @@
     <link href="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js" rel="stylesheet" type="text/css">
     <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    
+<!-- USAJobsApp CSS -->
     <link href="css/usa-jobs-map.css" rel="stylesheet" type="text/css">
+    
+<!-- Page CSS -->
     <style type="text/css">
         * {
         font-family: "open sans", helvetica, sans-serif
@@ -24,11 +28,12 @@
             margin-bottom: 5px;
         }
     </style>
+    
     <title>Job Vacancies</title>
 </head>
 <body class="container">
 
-    <!-- USAJobsApp Application Element-->
+<!-- USAJobsApp Application Element-->
     <div ng-app="UsaJobsApp" org-id="ARCE" org-name="Army Corp of Engineers">
 		<job-info></job-info>
 		<job-map></job-map>
@@ -36,14 +41,14 @@
 		<job-table></job-table>
 	</div>
 
-    <!-- JS Dependencies -->
+<!-- JS Dependencies -->
     <script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
     <script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
     <script type="text/javascript" src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
 
-	<!-- UsaJobsApp JS -->
+<!-- UsaJobsApp JS -->
 	<script type="text/javascript" src="app/UsaJobsApp.js"></script>
 	<script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
 	<script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
@@ -52,6 +57,5 @@
 	<script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
 	<script type="text/javascript" src="app/UsaJobsApp.Location.js"></script>
 	<script type="text/javascript" src="app/UsaJobsApp.Table.js"></script>
-
 </body>
 </html>
