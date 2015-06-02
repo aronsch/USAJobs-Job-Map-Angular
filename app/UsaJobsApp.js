@@ -12,7 +12,7 @@
 	 * Module Services Declarations
 	 */
 	angular.module('UsaJobsApp').controller('UsaJobsAppController', AppController);
-	angular.module('UsaJobsApp').directive('orgId', orgIdDirective);
+	angular.module('UsaJobsApp').directive('orgCode', orgCodeDirective);
 	angular.module('UsaJobsApp').service('eventService', eventService);
 	
 	/*
@@ -26,7 +26,7 @@
 	function AppController ($scope, Jobs, events, settings) {
 		
 		$scope.jobs = Jobs;
-		$scope.jobs.orgId = $scope.orgId;
+		$scope.jobs.orgCode = $scope.orgCode;
 		$scope.jobs.orgName = $scope.orgName;
 		$scope.orgSearchUrl = settings.usaJobs.searchBaseUrl + $scope.orgId;
 		$scope.jobs.orgSearchUrl = $scope.orgSearchUrl;
@@ -60,11 +60,11 @@
 	 * 
 	 * @return { Object }
 	 */
-	function orgIdDirective () {
+	function orgCodeDirective () {
 		return {
 			restrict : 'A',
 			scope : {
-				orgId : '@',
+				orgCode : '@',
 				orgName : '@',
 			
 			},
