@@ -150,9 +150,9 @@
 			var grades = [];
 			
 			// protect against returning divide-by-zero/infinty
-			if (jobs.length === 0) return 0;
+			if (this.JobData.length === 0) return 0;
 			
-			angular.forEach(jobs, function (job) {
+			angular.forEach(this.JobData, function (job) {
 				grades.push(job.gradeHighest());
 			}, this);
 			// return max,
@@ -168,9 +168,9 @@
 			var grades = [];
 			
 			// protect against returning divide-by-zero/infinty
-			if (jobs.length === 0) return 0;
+			if (this.JobData.length === 0) return 0;
 			
-			angular.forEach(jobs, function (job) {
+			angular.forEach(this.JobData, function (job) {
 				grades.push(job.gradeLowest());
 			}, this);
 			// return min,
@@ -185,9 +185,9 @@
 		function getMaxSalary () {
 			var salaries = [];
 			
-			if (jobs.length === 0) return 0;
+			if (this.JobData.length === 0) return 0;
 			
-			angular.forEach(jobs, function (job) {
+			angular.forEach(this.JobData, function (job) {
 				salaries.push(job.salaryHighest());
 			}, this);
 			return Math.max.apply(this, salaries);
@@ -200,9 +200,9 @@
 		function getMinSalary () {
 			var salaries = [];
 			
-			if (jobs.length === 0) return 0;
+			if (this.JobData.length === 0) return 0;
 			
-			angular.forEach(jobs, function (job) {
+			angular.forEach(this.JobData, function (job) {
 				salaries.push(job.salaryLowest());
 			}, this);
 			
@@ -514,8 +514,8 @@
 			// data
 			if ($scope.jobs.JobData.length === 0) return;
 			
-			var jobData = $scope.jobs.JobData, maxGrade = jobData.getMaxGrade(), minGrade = jobData.getMinGrade(), maxSalary = jobData
-					.getMaxSalary(), minSalary = jobData.getMinSalary();
+			var maxGrade = $scope.jobs.getMaxGrade(), minGrade = $scope.jobs.getMinGrade(), maxSalary = $scope.jobs
+					.getMaxSalary(), minSalary = $scope.jobs.getMinSalary();
 			
 			$scope.filters.salaryFilter.highest = maxSalary;
 			$scope.filters.salaryFilter.max = maxSalary;
