@@ -11,12 +11,12 @@ The app has four modular UI components:
 - `<job-info></job-info>` Displays overall app information - job loading status, number of jobs found, and selected Federal agency.
 
 To start the app, define the following attributes on the app element:
-- `org-id` The [Federal agency sub-element org code](https://schemas.usajobs.gov/Enumerations/AgencySubElement.xml).
+- `org-code` The [Federal agency sub-element org code](https://schemas.usajobs.gov/Enumerations/AgencySubElement.xml).
 - `org-name` The name of the organization for display in the `<job-info>` element.
 
 ### Example
 ```
-<div ng-app="UsaJobsApp" org-id="ARCE" org-name="Army Corp of Engineers">
+<div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
     <job-info></job-info>
     <job-map></job-map>
     <job-filter></job-filter>
