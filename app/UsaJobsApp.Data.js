@@ -52,7 +52,8 @@
 		 */
 		this.getJobs = getJobs;
 		this.query = query;
-		// Utility functions for getting data summaries
+		
+		// Job data summary functions
 		this.getMaxGrade = getMaxGrade;
 		this.getMinGrade = getMinGrade;
 		this.getMaxSalary = getMaxSalary;
@@ -69,8 +70,9 @@
 				NumberOfJobs : 250,
 				OrganizationID : this.orgCode
 			});
-        }
-        /**
+		}
+		
+		/**
 		 * @public Query USA Jobs with provided request parameters
 		 * @param params
 		 *            {Object}
@@ -271,7 +273,7 @@
 				this.concatenatedValues += v + ' | ';
 			}, this);
 		}
-		Job.prototype.visible = true;
+		Job.prototype.visible = true; 
 		
 		// Prototype Function Bindings
 		Job.prototype.setVisibleWithPredicate = setVisibleWithPredicate;
@@ -343,10 +345,10 @@
 	 */
 	function jobFilterDirective () {
 		var tmplt = '<div class="form row job-filter">';
-		tmplt += '<vacancy-count-desc jobs="jobs"></vacancy-count-desc>';
+		tmplt += '<vacancy-count-desc></vacancy-count-desc>';
 		tmplt += '<div class="form-group col-xs-8 col-sm-9"><label for="filters.stringFilter.value" class="sr-only">Filter Vacancies</label>';
-		tmplt += '<input type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"><button type="button" class="btn btn-xs btn-danger pull-right" style="position: absolute; right: 22px; top: 6px;" ng-show="filters.filterStatus.active" ng-click="reset()"><i class="fa fa-fw fa-close"></i>Clear Filters</button></div>';
-		tmplt += '<p class="col-xs-4 col-sm-3 text-right"><a class="btn btn-default usajobs-filters-advanced-btn" ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "Show"}} Advanced Filters</a></p>';
+		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"><button type="button" class="btn btn-xs btn-danger pull-right" style="position: absolute; right: 22px; top: 6px;" ng-show="filters.filterStatus.active" ng-click="reset()"><i class="fa fa-fw fa-close"></i>Clear Filters</button></div>';
+		tmplt += '<p class="col-xs-4 col-sm-3 text-right"><a class="btn btn-default usajobs-filters-advanced-btn" ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "Show"}} Advanced Filters</a></p>';
 		tmplt += '<div ng-show="showAdvancedFilters">';
 		tmplt += '<div class="form-group col-xs-6 col-sm-6"><label for="grade-slider">Grade Filter</label>';
 		tmplt += '<div range-slider show-values="true" filter="grade" id="grade-slider" min="filters.gradeFilter.lowest" max="filters.gradeFilter.highest" model-min="filters.gradeFilter.min" model-max="filters.gradeFilter.max"></div></div>';
@@ -487,21 +489,8 @@
 		
 		// Watch for new jobs and trigger update on change
 		events.jobs.onAvailable(handleJobsChange);
-		
-		/**
-		 * @private Update overall filter status indicator by checking to see if
-		 * any of the filter objects are active.
-		 */
-		function setFiltersActive () {
-			// test all filters to see if they are active;
-			this.filterStatus.active = this.gradeFilter.isActive() || this.salaryFilter.isActive()
-					|| this.payFilter.isActive() || this.stringFilter.isActive();
-			
-			// if filters are zer
-			if (this.filterStatus.active) {
-				events.filters.cleared();
-			}
-		}
+		// Watch for clear filters request
+		events.filters.onClear(reset);
 		
 		/**
 		 * @public Update filter ranges based on current job results.
@@ -542,7 +531,7 @@
 		/**
 		 * @public Returns a predicate function for use in determining if a `Job` meets the current filter criteria.
 		 * @param { Job } job `Job` object for comparison
-		 * @returns { Boolean } Boolean indicating whether the `Job` met or failed the predicate criteria.
+		 * @returns { Boolean } Boolean indicating whether the `Job` met the predicate criteria.
 		 *
 		 */
 		function predicate (job) {
@@ -571,6 +560,20 @@
 		}
 		
 		/**
+		 * @private If any filters are active, set overall filter status to active.
+		 */
+		function setFiltersActive () {
+			// test all filters to see if they are active;
+			this.filterStatus.active = this.gradeFilter.isActive() || this.salaryFilter.isActive()
+					|| this.payFilter.isActive() || this.stringFilter.isActive();
+			
+			// if filters are zer
+			if (this.filterStatus.active) {
+				events.filters.cleared();
+			}
+		}
+		
+		/**
 		 * @private Count the number of jobs that currently meet the filter criteria.
 		 */
 		function countVisible () {
@@ -593,6 +596,7 @@
 		 */
 		function handleJobsChange () {
 			$scope.update();
+			$scope.reset();
 			$scope.filter();
 		}
 
@@ -635,10 +639,10 @@
 		tmplt += '<p>';
 		tmplt += '<span ng-hide="jobs.resolved">';
 		tmplt += '<i class="fa fa-spinner fa-pulse"></i> ';
-		tmplt += 'Getting job openings from ';
+		tmplt += 'Getting <strong>{{jobs.orgName}}</strong> job openings from ';
 		tmplt += '</span>';
 		tmplt += '<span ng-show="jobs.resolved">';
-		tmplt += '<strong>{{ jobs.JobData.length }}</strong> {{ jobs.orgName }} job openings are currently listed on ';
+		tmplt += '<strong>{{ jobs.JobData.length }} {{ jobs.orgName }}</strong> job openings are currently listed on ';
 		tmplt += '</span>';
 		tmplt += ' <a ng-href="{{jobs.orgSearchUrl}}" target="_blank">USAJobs.gov</a></p>';
 		
@@ -658,5 +662,4 @@
 	function jobInfoController ($scope, Jobs) {
 		$scope.jobs = Jobs;
 	}
-	
 })();
