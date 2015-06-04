@@ -3,6 +3,11 @@
  * @module UsaJobsApp Leaflet Map Module - This module receives JobLocation
  *         objects created by the UsaJobsApp.Location module and plots them on a
  *         Leaflet.js map once they have been geocoded.
+ *         - Job Map Directive that sets up Leaflet.js map element
+ *         - Job Map controller to handle marker management and marker visibility
+ *         - Alaska view map control - TODO: make this an external module
+ *         - Map reset view map control - TODO: make this a button that doesn't require an asset
+ *         - Map default options value 
  */
 (function () {
 	angular.module('UsaJobsApp.Map', [ 'LeafletModule', 'UsaJobsApp.Settings', 'UsaJobsApp.Utilities',
@@ -250,10 +255,8 @@
 		 *            marker Array of markers
 		 */
 		function hideMarkers (markers) {
-			var i, L = markers.length;
-			for (i = 0; i < L; i++) { // native loop for speed
-				$scope.markerLayer().removeLayer(markers[i]);
-			}
+			$scope.markerLayer().removeLayers(markers);
+
 		}
 		
 		/**
@@ -262,11 +265,7 @@
 		 *            marker Array of markers
 		 */
 		function showMarkers (markers) {
-			var i, L = markers.length;
-			
-			for (i = 0; i < L; i++) { // native loop for speed
-				$scope.markerLayer().addLayer(markers[i]);
-			}
+			$scope.markerLayer().addLayers(markers);
 		}
 		
 		/**
@@ -896,9 +895,9 @@
 						// show when map view is not at starting zoom
 						map.on('zoomend', function (e) {
 							if (e.target.mapAtDefaultZoom()) {
-								angular.element(container).fadeIn(100);
+								$(container).fadeIn(100);
 							} else {
-								angular.element(container).fadeOut(100);
+								$(container).fadeOut(100);
 							}
 						});
 						
@@ -906,9 +905,9 @@
 						// position
 						map.on('moveend', function (e) {
 							if (!e.target.mapViewCentered()) {
-								angular.element(container).fadeIn(100);
+								$(container).fadeIn(100);
 							} else {
-								angular.element(container).fadeOut(100);
+								$(container).fadeOut(100);
 							}
 						});
 						
