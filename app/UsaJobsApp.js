@@ -1,6 +1,8 @@
 /**
- * @module UsaJobsApp App Module - Main UsaJobsMap app module containing app
- *         controller and centralized event service.
+ * @module UsaJobsApp App Module - Main UsaJobsMap app module
+ * - Main app controller
+ * - Org Code Directive to bind controller
+ * - Centralized event emission and subscription service
  */
 (function () {
 	
@@ -91,7 +93,8 @@
 		};
 		names.filters = {
 			changed : 'usajobs.events.filter-values-changed',
-			cleared : 'usajobs.events.filter-values-cleared'
+			cleared : 'usajobs.events.filter-values-cleared',
+			clear : 'usajobs.events.filter-clear-filters'
 		};
 		names.focus = {
 			job : 'usajobs.events.focus-set-job',
@@ -147,6 +150,14 @@
 		
 		filters.onCleared = function (handlerFn) {
 			on(names.filters.cleared, handlerFn);
+		};
+		
+		filters.clear = function (predicate) {
+			broadcast(names.filters.clear);
+		};
+		
+		filters.onClear = function (handlerFn) {
+			on(names.filters.clear, handlerFn);
 		};
 		
 		// Shared broadcast and registration functions
