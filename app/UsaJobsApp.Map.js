@@ -14,20 +14,19 @@
 			'UsaJobsApp.Location', 'UsaJobsApp.Data' ]);
 	
 	/*
-	 * Module Services Declarations
+	 * Module Service Declarations and Function Bindings
 	 */
 	angular.module('UsaJobsApp.Map').directive('jobMap', jobMapDirective);
 	angular.module('UsaJobsApp.Map').controller('JobMapController', JobMapController);
 	angular.module('UsaJobsApp.Map').factory('akMapControl', akMapControl);
 	angular.module('UsaJobsApp.Map').factory('mapResetControl', mapResetControl);
-	angular.module('UsaJobsApp.Map').value('mapOptions', mapOptions());
 	
 	/*
-	 * Module Services Definition
+	 * Module Service Functions
 	 */
 
 	/**
-	 * @name UsaJobsApp.Map#JobMapController Job Map Controller
+	 * Job Map Controller
 	 */
 	JobMapController.$inject = [ '$scope', '$rootScope', 'eventService', 'leaflet', 'unique', 'JobLocation',
 			'mapMarkerDefaults', 'Jobs' ];
@@ -312,40 +311,37 @@
 				$scope.jobCountLayer.clearLayers();
 			}
 			
-			$scope.map
-					.on(
-							'zoomend',
-							function (e) {
-								var zoom = $scope.map.getZoom();
-								if (zoom >= 4) {
-									angular
-											.forEach(
-													$scope.jobCountLayer._layers,
-													function (c) {
-														c.setRadius(c.startRadius
-																* (zoom - $scope.mapOptions.mapZoom + 1));
-														c.options.fillOpacity = c.startOpacity
-																- ((c.startOpacity / ($scope.mapOptions.mapMinZoom - $scope.mapOptions.mapMaxZoom)) * (zoom - $scope.mapOptions.mapZoom));
-														c.options.weight = countCircleWeight(c);
-														c._updateStyle();
-													});
-								}
-								if (zoom < 4) {
-									angular.forEach($scope.jobCountLayer._layers, function (c) {
-										c.options.fillOpacity = 0;
-										c._updateStyle();
-									});
-								}
-								
-								function countCircleWeight (c) {
-									// increase circle stroke weight when
-									// zooming in past default zoom
-									return c.startWeight
-											* (zoom > $scope.mapOptions.mapZoom ? zoom - $scope.mapOptions.mapZoom + 1
-													: 1);
-								}
-								
-							});
+			$scope.map.on('zoomend', function (e) {
+				var zoom = $scope.map.getZoom();
+				if (zoom >= 4) {
+					// adjust radius and opacity based on zoom
+					angular.forEach($scope.jobCountLayer._layers,
+						function (c) {
+							// scale jobcount overlays up as we zoom in
+							c.setRadius(c.startRadius
+									* (zoom - $scope.mapOptions.zoom + 1));
+							// reduce opacity as we zoom in so map detail is visible
+							c.options.fillOpacity = c.startOpacity
+									- ((c.startOpacity / ($scope.mapOptions.maxZoom - $scope.mapOptions.minZoom)) * (zoom - $scope.mapOptions.zoom));
+							c.options.weight = countCircleWeight(c);
+							// trigger overlay update
+							c._updateStyle();
+						});
+				}
+				if (zoom < 4) {
+					angular.forEach($scope.jobCountLayer._layers, function (c) {
+						// hide overlay when zoomed out to avoid clutter
+						c.options.fillOpacity = 0;
+						// trigger overlay update
+						c._updateStyle();
+					});
+				}
+				
+				function countCircleWeight (c) {
+					// increase circle stroke weight when zooming in past default zoom
+					return c.startWeight * (zoom > $scope.mapOptions.zoom ? (zoom - $scope.mapOptions.zoom + 1) : 1);
+				}
+			});
 		}
 		
 		/**
@@ -397,9 +393,9 @@
 	 * 
 	 * @scope
 	 */
-	jobMapDirective.$inject = [ '$compile', 'leaflet', 'akMapControl', 'mapResetControl', 'mapOptions',
+	jobMapDirective.$inject = [ '$compile', 'leaflet', 'akMapControl', 'mapResetControl',
 			'mapMarkerDefaults', 'settings' ];
-	function jobMapDirective ($compile, leaflet, akMapControl, mapResetControl, mapOpts, markerDefaults, settings) {
+	function jobMapDirective ($compile, leaflet, akMapControl, mapResetControl, markerDefaults, settings) {
 		return {
 			restrict : 'E',
 			controller : 'JobMapController',
@@ -410,7 +406,7 @@
 				element.addClass('usajobs-map');
 				
 				// Extend scope with map properties
-				scope.mapOptions = mapOpts.optionsWithAttrs(attrs);
+				scope.mapOptions = settings.map;
 				
 				// Add geodata tracking object
 				scope.geodataStatus = {
@@ -457,8 +453,7 @@
 					
 					// Add collection for locations with no geodata found
 					scope.locationsNoGeodata = [];
-					scope.locationsNoGeodata.maximized = false; // start
-					// minimized;
+					scope.locationsNoGeodata.maximized = false; // start minimized
 					scope.locationsNoGeodata.jobCount = 0;
 					scope.locationsNoGeodata.updateJobCount = function () {
 						var c = 0;
@@ -487,32 +482,35 @@
 					element.append(angular.element(el));
 				}
 				
+				/**
+				 * @private Create Leaflet.js map element
+				 */
 				function leafletMap () {
 					var map, tileLayer;
 					map = leaflet.map(element[0], {
-						center : scope.mapOptions.mapCenter,
-						zoom : scope.mapOptions.mapZoom,
-						attributionControl : scope.mapOptions.mapAttributionControl,
+						center : scope.mapOptions.center,
+						zoom : scope.mapOptions.zoom,
+						attributionControl : scope.mapOptions.attributionControl,
 						zoomControl : false,
-						scrollWheelZoom : scope.mapOptions.mapScrollWheelZoom,
+						scrollWheelZoom : scope.mapOptions.scrollWheelZoom,
 						worldCopyJump : true
 					});
 					
+					// map tile layer
 					tileLayer = leaflet
 							.tileLayer(
-									'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-									{
-										subdomains : 'abc',
-										detectRetina : true,
-										// reuseTiles : true,
-										attribution : '<a target="_blank" href="http://www.openstreetmap.org/copyright" title="Map data &#169;OpenStreetMap contributors">&#169; OpenStreetMap contributors</a>',
-										maxZoom : 10,
-										minZoom : 4
-									});
+								'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+								{
+									subdomains : 'abc',
+									detectRetina : true,
+									attribution : '<a target="_blank" href="http://www.openstreetmap.org/copyright" title="Map data &#169;OpenStreetMap contributors">&#169; OpenStreetMap contributors</a>',
+									maxZoom : scope.mapOptions.maxZoom,
+									minZoom : scope.mapOptions.minZoom
+								});
 					
 					tileLayer.addTo(map);
 					
-					// map functions
+					// map utility functions
 					map.resetMapView = resetMapView;
 					map.mapViewCentered = mapViewCentered;
 					map.mapAtDefaultZoom = mapAtDefaultZoom;
@@ -522,7 +520,7 @@
 					if (scope.bounds) map.fitBounds(scope.bounds);
 					
 					// marker clustering plugin and options, if enabled
-					if (scope.mapOptions.mapMarkerClustering) {
+					if (scope.mapOptions.markerClustering) {
 						map.markerClusterLayer = new leaflet.markerClusterGroup({
 							maxClusterRadius : 35,
 							showCoverageOnHover : false,
@@ -535,14 +533,6 @@
 						});
 						map.addLayer(map.markerClusterLayer);
 					}
-					
-					// add the EdgeMarker to the map.
-					// map.edgeMarkerLayer = L.edgeMarker({
-					// icon : L.icon(settings.assets.offScreen),
-					// rotateIcons : true,
-					// layerGroup : map.markerClusterLayer
-					// });
-					// map.edgeMarkerLayer.addTo(map);
 					
 					// Map Zoom UI Control on desktop browser
 					if (!leaflet.Browser.mobile && !leaflet.Browser.touch) {
@@ -559,23 +549,36 @@
 					// Add Event Listeners
 					map.on('zoomstart', handleZoomStart);
 					
+					/**
+					 * @private Handler triggered on map `zoomStart` event
+					 */
 					function handleZoomStart () {
 						map.closePopup();
 					}
 					
+					/**
+					 * @public reset map view to default state
+					 */ 
 					function resetMapView () {
 						if (scope.bounds) {
 							map.fitBounds(scope.bounds);
 						} else {
-							map.setView(scope.mapOptions.mapCenter, scope.mapOptions.mapZoom);
+							map.setView(scope.mapOptions.center, scope.mapOptions.zoom);
 						}
 					}
 					
+					/**
+					 * @public Accounting for drift, determine if the map is at its
+					 * starting position.
+					 */ 
 					function mapViewCentered () {
 						// Determine if map ic centered. Allow for slight drift.
-						return map.getCenter().distanceTo(scope.mapOptions.mapCenter) < 20000;
+						return map.getCenter().distanceTo(scope.mapOptions.center) < 20000;
 					}
 					
+					/**
+					 * @public Determine whether the map is at the default zoom level
+					 */ 
 					function mapAtDefaultZoom () {
 						return map.getZoom() === map.options.zoom;
 					}
@@ -746,63 +749,6 @@
 					}
 					return m.toString() + 'px';
 				}
-			}
-		};
-	}
-	
-	function mapOptions () {
-		return {
-			mapCenter : [ 40.8282, -98.5795 ], // default map
-			// center position
-			mapZoom : 4, // default map starting zoom
-			mapAttributionControl : true, // defaults to
-			// displaying data
-			// attribution
-			mapZoomControl : true, // defaults to displaying map
-			// zoom control
-			mapScrollWheelZoom : true, // defaults to allowing zoom
-			// control via mouse scroll
-			mapMaxZoom : 3, // default max zoom limit
-			mapMinZoom : 10, // default min zoom limit
-			mapMarkerClustering : true, // defaults to clustering
-			// markers
-			optionsWithAttrs : function (attrs) {
-				// parse options provided by the directive element
-				// or fall back to default option.
-				function parseJSONOpt (optStr) {
-					if (!optStr) {
-						return false;
-					} else {
-						return JSON.parse(optStr);
-					}
-				}
-				
-				function parseIntOpt (optStr) {
-					if (!optStr) {
-						return false;
-					} else {
-						return parseInt(optStr);
-					}
-				}
-				
-				function parseBoolOpt (optStr) {
-					if (!optStr) {
-						return false;
-					} else {
-						return Boolean(optStr);
-					}
-				}
-				
-				return {
-					mapCenter : parseJSONOpt(attrs.mapCenter) || this.mapCenter,
-					mapZoom : parseIntOpt(attrs.mapZoom) || this.mapZoom,
-					mapAttributionControl : parseBoolOpt(attrs.mapAttributionControl) || this.mapAttributionControl,
-					mapZoomControl : parseBoolOpt(attrs.mapZoomControl) || this.mapZoomControl,
-					mapScrollWheelZoom : parseBoolOpt(attrs.mapScrollWheelZoom) || this.mapZoomControl,
-					mapMaxZoom : parseIntOpt(attrs.mapMaxZoom) || this.mapMaxZoom,
-					mapMinZoom : parseIntOpt(attrs.mapMinZoom) || this.mapMinZoom,
-					mapMarkerClustering : parseBoolOpt(attrs.mapMarkerClustering) || this.mapMarkerClustering
-				};
 			}
 		};
 	}
