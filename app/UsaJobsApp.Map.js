@@ -13,18 +13,14 @@
 	angular.module('UsaJobsApp.Map', [ 'LeafletModule', 'UsaJobsApp.Settings', 'UsaJobsApp.Utilities',
 			'UsaJobsApp.Location', 'UsaJobsApp.Data' ]);
 	
-	/*
-	 * Module Service Declarations and Function Bindings
-	 */
+	/* Service Declarations */
 	angular.module('UsaJobsApp.Map').directive('jobMap', jobMapDirective);
 	angular.module('UsaJobsApp.Map').controller('JobMapController', JobMapController);
 	angular.module('UsaJobsApp.Map').factory('akMapControl', akMapControl);
 	angular.module('UsaJobsApp.Map').factory('mapResetControl', mapResetControl);
 	angular.module('UsaJobsApp.Map').service('mapMarkerDefaults', mapMarkerDefaults);
 	
-	/*
-	 * Module Service Functions
-	 */
+	/* Service Functions */
 
 	/**
 	 * Job Map Controller
@@ -61,13 +57,9 @@
 		$scope.markerLayer = markerLayer;
 		$scope.resetMarkers = resetMarkers;
 		
-		/*
-		 * Functions
-		 */
+		/* Functions */
 
-		/**
-		 * @private Called when Job resources resolves
-		 */
+		/** @private Called when Job resources resolves */
 		function onJobsResolved () {
 			
 			// Create visual job count overlay layer
@@ -85,12 +77,9 @@
 		}
 		
 		/**
-		 * @private Add marker to map or update existing marker when new geodata
-		 *          becomes available.
-		 * @param {Event}
-		 *            e Event Object
-		 * @param {JobLocation}
-		 *            L JobLocation Object
+		 * @private Add marker to map or update existing marker when new geodata becomes available.
+		 * @param {*} e Event Object
+		 * @param {*} L JobLocation Object
 		 */
 		function onGeodataAvailable (e, L) {
 			addJobCountMarker(L);
@@ -102,10 +91,8 @@
 		 * @private If a a JobLocation could not be geocoded, add to a list of
 		 *          locations without geodata that will be displayed in the map
 		 *          UI.
-		 * @param {Event}
-		 *            e Event Object
-		 * @param {JobLocation}
-		 *            L JobLocation Object
+		 * @param {*} e Event Object
+		 * @param {*} L JobLocation Object
 		 */
 		function onGeodataNotAvailable (e, L) {
 			$scope.locationsNoGeodata.push(L);
@@ -118,8 +105,7 @@
 		 * @public Create a map marker representing a job location. If a marker
 		 *         exists for the provided job location, remove and replace with
 		 *         updated marker. If it doesn't exist, create it.
-		 * @param {JobLocation}
-		 *            location JobLocation Object
+		 * @param {*} location JobLocation Object
 		 */
 		function updateMarkerForLoc (location) {
 			var marker;
@@ -133,8 +119,7 @@
 		}
 		
 		/**
-		 * @public Update all markers based on the state of their associated
-		 *         `JobLocation`.
+		 * @public Update all markers based on the state of their associated `JobLocation`.
 		 */
 		function updateMarkers () {
 			angular.forEach($scope.locations, function (location) {
@@ -154,7 +139,9 @@
 			var show = [], hide = [];
 			
 			angular.forEach($scope.locations, function (location) {
-				var marker, visibleCount = location.countVisible(), visible = location.visible();
+				var marker,
+				visibleCount = location.countVisible(),
+				visible = location.visible();
 				
 				// Look up marker based on location name. If marker exists,
 				// perform visibility update.
@@ -164,7 +151,6 @@
 					if (visibleCount !== marker.jobCount && visibleCount > 0) {
 						$scope.updatePopup(marker);
 					}
-
 					// If a marker has changed state, add it to the appropriate
 					// batch operation collection.
 					if (!visible && marker.visible) {
@@ -180,7 +166,6 @@
 					}
 				}
 			}, this);
-			
 			// Perform batch marker updates.
 			$scope.hideMarkers(hide);
 			$scope.showMarkers(show);
@@ -241,8 +226,7 @@
 		
 		/**
 		 * @public Remove a marker from the map
-		 * @param {L.marker}
-		 *            marker
+		 * @param {*} marker Leaflet marker
 		 */
 		function removeMarker (marker) {
 			$scope.markerLayer().removeLayer(marker);
@@ -251,8 +235,7 @@
 		
 		/**
 		 * @public Hide a collection of markers by removing them from the map.
-		 * @param {Array}
-		 *            marker Array of markers
+		 * @param {Array} markers Array of Leaflet markers 
 		 */
 		function hideMarkers (markers) {
 			$scope.markerLayer().removeLayers(markers);
@@ -261,8 +244,7 @@
 		
 		/**
 		 * @public Show a collection of markers by adding them from the map.
-		 * @param {Array}
-		 *            marker Array of markers
+		 * @param {Array} markers Array of Leaflet markers
 		 */
 		function showMarkers (markers) {
 			$scope.markerLayer().addLayers(markers);
@@ -272,7 +254,7 @@
 		 * @public Returns the job location marker layer. If marker clustering
 		 *         is enabled, the marker cluster layer is returned, rather than
 		 *         the default marker layer.
-		 * @returns {L.ILayer}
+		 * @returns {*}
 		 */
 		function markerLayer () {
 			var layer;
@@ -312,6 +294,7 @@
 				$scope.jobCountLayer.clearLayers();
 			}
 			
+			/* Map `zoomend` event listener */
 			$scope.map.on('zoomend', function (e) {
 				var zoom = $scope.map.getZoom();
 				if (zoom >= 4) {
@@ -346,11 +329,9 @@
 		}
 		
 		/**
-		 * @private Creates an additional marker layer where non-interactive
-		 *          circles corresponding to the number of jobs at location are
-		 *          drawn.
-		 * @param location
-		 *            {JobLocation}
+		 * @private Add a non-interactive overlay marker to map to indicate the number of jobs at
+		 * 	    a job location.
+		 * @param {*} location JobLocation
 		 */
 		function addJobCountMarker (location) {
 			var maxSize, minSize, maxOpacity, minOpacity, marker;
@@ -378,14 +359,6 @@
 			marker.startOpacity = marker.options.fillOpacity.valueOf();
 			marker.startWeight = marker.options.weight.valueOf();
 			$scope.jobCountLayer.addLayer(marker);
-		}
-		
-		function percentageOfRange (min, max, percentage) {
-			return min + ((max - min) * percentage);
-		}
-		
-		function percentageOfRangeInverted (min, max, percentage) {
-			return max - ((max - min) * percentage);
 		}
 	}
 	
