@@ -63,9 +63,12 @@
              * UsaJobsApp Org Browser extension. Creates an organization selection control using an XML reference
              * document of all Federal Government agencies and agency sub-elements.
              */
+	    
+	    /* Service Declarations */
             angular.module('UsaJobsApp').directive('orgBrowser', orgBrowserDirective);
             angular.module('UsaJobsApp').controller('orgBrowserController', orgBrowserController);
 
+	    /* Service Functions */
             function orgBrowserDirective () {
                 var tmplt = '';
                 tmplt += '<div class="form form-horizontal">';
@@ -118,9 +121,8 @@
                 }
 
                 function agencyXmlDocResolved (data) {
-                    var x2js = new X2JS(), 
-                    json = x2js.xml_str2json(data);
-                    
+                    var x2js = new X2JS(), json = x2js.xml_str2json(data);
+
                     addParentNames(json);
                     $scope.agencies = json.CodeLists.CodeList.ValidValue;
                     sortAgencies();
@@ -172,6 +174,7 @@
                 }
             }
         })();
+
     </script>
 </body>
 </html>
