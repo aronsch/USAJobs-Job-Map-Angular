@@ -1,6 +1,5 @@
 /**
  * @module UsaJobsApp Data module
- * 
  * - Provides Service to retrieve jobs from USAJobs.gov.
  * - Provides Factory for creating `Job` objects, which extend the job results from USAJobs.gov
  * - Provides Directive and Controller for filtering job results
@@ -29,14 +28,16 @@
 	angular.module('UsaJobsApp.Data').controller('jobInfoController', jobInfoController);
 	
 	/*
-	 * Functions
+	 * Service Functions
 	 */
-
+	
+	/**
+	 * USA Jobs Data Service
+	 */
 	Jobs.$inject = [ '$http', 'settings', 'unique', 'Job', 'eventService' ];
 	function Jobs ($http, settings, unique, Job, Events) {
 		
 		var self = this; // closure reference to `this` for callbacks
-		
 		
 		/*
 		 * Public Properties
@@ -74,8 +75,7 @@
 		
 		/**
 		 * @public Query USA Jobs with provided request parameters
-		 * @param params
-		 *            {Object}
+		 * @param { * } params
 		 */
 		function query (params) {
 			this.resolved = false; // reset query status
@@ -96,10 +96,10 @@
 			Events.jobs.available(); // emit jobs available event
 		}
 
-        /**
-         * @private Take job query results and add to `JobData` collection as `Job` objects.
-         * @param data
-         */
+		/**
+		 * @private Take job query results and add to `JobData` collection as `Job` objects.
+		 * @param data
+		 */
 		function addJobResults (data) {
 			angular.forEach(data.JobData, function (item, idx) {
 				self.JobData.push(new Job(item));
@@ -107,10 +107,10 @@
 			groupByLocation(self.JobData);
 		}
 
-        /**
-         *
-         * @param jobs
-         */
+		/**
+		 * Set up `locations` property and group jobs by location
+		 * @param jobs
+		 */
 		function groupByLocation (jobs) {
 			var placeNames = [];
 			jobs.locations = {};
@@ -141,11 +141,11 @@
 		}
 		
 		/*
-		 * Public Utility Functions
+		 * Utility Functions
 		 */
 
 		/**
-		 * @public Returns the maximum GS Grade listed in the jobs results.
+		 * @public Returns the maximum pay grade listed in the jobs results.
 		 * @return {Number}
 		 */
 		function getMaxGrade () {
@@ -163,7 +163,7 @@
 		}
 		
 		/**
-		 * @public Returns the minimum GS Grade listed in the jobs results.
+		 * @public Returns the minimum pay grade listed in the jobs results.
 		 * @return {Number}
 		 */
 		function getMinGrade () {
@@ -249,17 +249,18 @@
 	/**
 	 * `Job` Object Factory - Extends job data from USA Jobs search results
 	 */
-	JobFactory.$inject = [ '$filter', 'moment' ];
-	function JobFactory ($filter) {
-		// Vacancy object definition
+	JobFactory.$inject = [ '$filter', 'moment', 'settings'];
+	function JobFactory ($filter, moment, settings) {
+		/** @constructor */
 		function Job (jobData) {
-			var now = moment();
-			// attach jobData properties to job object
-			angular.extend(this, jobData);
-
-            // FIXME: Provide date formats - Moment will require this in future versions.
-			this.daysRemaining = moment(this.EndDate).diff(now, 'days');
-			this.daysOpen = moment(now).diff(this.StartDate, 'days');
+			var now = moment(),
+			dateFm = settings.usaJobs.dateFormat;
+			
+			angular.extend(this, jobData); // attach USAJobs job properties
+			
+			/* Set static properties */
+			this.daysRemaining = moment(this.EndDate, dateFm).diff(now, 'days');
+			this.daysOpen = moment(now).diff(moment(this.StartDate, dateFm), 'days');
 			this.endDateDescription = $filter('datedescription')(this.EndDate);
 			this.salaryRange = $filter('trailingzeroes')(this.SalaryMin + " to " + this.SalaryMax);
 			this.title = this.JobTitle;
@@ -275,7 +276,9 @@
 		}
 		Job.prototype.visible = true; 
 		
-		// Prototype Function Bindings
+		/*
+		 * Prototype Function Bindings
+		 */
 		Job.prototype.setVisibleWithPredicate = setVisibleWithPredicate;
 		Job.prototype.locationArray = locationArray;
 		Job.prototype.hourly = hourly;
@@ -286,8 +289,15 @@
 		Job.prototype.salaryLowest = salaryLowest;
 		Job.prototype.salaryHighest = salaryHighest;
 		
-		// Prototype Function Definitions
+		/*
+		 * Prototype Function Definitions
+		 */
 		
+		/**
+		 * @public Set visibility property evaluating provided
+		 * predicate function.
+		 * @param {Function}
+		 */
 		function setVisibleWithPredicate (predicateFn) {
 			// set visibility based on predicate function result
 			if (angular.isDefined(predicateFn)) {
@@ -298,41 +308,94 @@
 			}
 		}
 		
+		/**
+		 * @public Split locations string in array
+		 * @returns {Array}
+		 */
 		function locationArray () {
 			// Split text list of locations into array
 			return this.Locations.split(/;/g);
 		}
 		
+		/**
+		 * @public Determine if the job is hourly
+		 * @returns {Boolean}
+		 */
 		function hourly () {
 			return this.SalaryBasis === "Per Hour";
 		}
 		
+		/**
+		 * @public Determine if the job is salaried
+		 * @returns {Boolean}
+		 */
 		function salaried () {
 			return this.SalaryBasis === "Per Year";
 		}
 		
+		/**
+		 * @public Render a text description of the job's pay grade range
+		 * @returns {String}
+		 */
 		function gradeRangeDesc () {
-			var range = this.Grade.split("/");
-			return this.PayPlan + " " + range[0] + (range[0] !== range[1] ? " to " + range[1] : "");
+			var low = this.gradeLowest(),
+			high = this.gradeHighest();
+			// return single grade if high grade is the same - "GS 7"
+			// return range description if high grade is different - "GS 7 to 9"
+			return this.PayPlan + " " + low + (low !== high ? " to " + high : "");
 		}
 		
+		/**
+		 * @public Return the lowest pay grade listed for the job
+		 * @returns {String}
+		 */
 		function gradeLowest () {
-			return parseInt(this.Grade.split("/")[0]);
+			var str = this.Grade.split("/")[0];
+			return numVal(str) ? numVal(str) : str;
 		}
 		
+		/**
+		 * @public Return the highest pay grade listed for the job, if listed.
+		 * 	   Otherwise default lowest pay grade.
+		 * @returns {String}
+		 */
 		function gradeHighest () {
 			// if grade listing contains only one grade, return that grade
-			var highGrade = this.Grade.split("/")[1] ? parseInt(this.Grade.split("/")[1]) : parseInt(this.Grade
-					.split("/")[0]);
+			var str = this.Grade.split("/")[1];
+			var highGrade = str ? numVal(str) : this.gradeLowest()
 			return highGrade;
 		}
 		
+		/**
+		 * @public Return the lowest salary listed for the job
+		 * @returns {Number}
+		 */
 		function salaryLowest () {
-			return parseInt(this.SalaryMin.replace(/[$,a-z]/gi, ""));
+			
+			return parseSalary(this.SalaryMin);
 		}
 		
+		/**
+		 * @public Return the lowest salary listed for the job
+		 * @returns {Number}
+		 */
 		function salaryHighest() {
-			return parseInt(this.SalaryMax.replace(/[$,a-z]/gi, ""));
+			return parseSalary(this.SalaryMax);
+		}
+		
+
+		function parseSalary(str) {
+			// remove currency symbol and letters, then parse to number
+			return parseInt(str.replace(/[$,a-z]/gi, ""));
+		}
+		
+		function numVal (str) {
+			var parsed = parseInt(str);
+			if (isFinite(parsed)) {
+				return parsed
+			} else {
+				return false;
+			}
 		}
 		
 		return Job;
@@ -340,11 +403,11 @@
 	
 	/*
 	 * Job Data Filter Directive
-	 *
 	 * Directive that provides a filter form for filtering USA Jobs search results.
 	 */
 	function jobFilterDirective () {
-		var tmplt = '<div class="form row job-filter">';
+		var tmplt = '';
+		tmplt += '<div class="form row job-filter">';
 		tmplt += '<vacancy-count-desc></vacancy-count-desc>';
 		tmplt += '<div class="form-group col-xs-8 col-sm-9"><label for="filters.stringFilter.value" class="sr-only">Filter Vacancies</label>';
 		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"><button type="button" class="btn btn-xs btn-danger pull-right" style="position: absolute; right: 22px; top: 6px;" ng-show="filters.filterStatus.active" ng-click="reset()"><i class="fa fa-fw fa-close"></i>Clear Filters</button></div>';
@@ -471,13 +534,19 @@
 			}
 		};
 		
-		// Public Function Bindings
+		/*
+		 * Public Function Bindings
+		 */
 		$scope.update = update;
 		$scope.reset = reset;
 		$scope.predicate = predicate;
 		$scope.filter = filter;
 		$scope.toggleAdvancedFilters = toggleAdvancedFilters;
 		$scope.filters.setFiltersActive = setFiltersActive;
+		
+		/*
+		 * Event Handling
+		 */
 		
 		// Watch for changes in the slider control objects
 		// Normally this would be event-driven, but current slider UI
@@ -486,11 +555,14 @@
 		$scope.$watch('filters.salaryFilter.max', handleFilterChange);
 		$scope.$watch('filters.gradeFilter.min', handleFilterChange);
 		$scope.$watch('filters.gradeFilter.max', handleFilterChange);
-		
 		// Watch for new jobs and trigger update on change
 		events.jobs.onAvailable(handleJobsChange);
 		// Watch for clear filters request
 		events.filters.onClear(reset);
+		
+		/*
+		 * Functions
+		 */
 		
 		/**
 		 * @public Update filter ranges based on current job results.
@@ -598,16 +670,15 @@
 			$scope.update();
 			$scope.reset();
 			$scope.filter();
-		}
-
-		
+		}	
 	}
 	
 	/**
 	 * Directive displaying the number of jobs that meet current filter criteria.
 	 */
 	function vacancyCountDescDirective () {
-		var tmplt = '<p class=\"usajobs-vac-count text-center\" ng-class=\"{\'bg-clear\': filterStatus.active, \'text-primary\': filterStatus.active, \'bg-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active, \'text-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active}\">';
+		var tmplt = '';
+		tmplt += '<p class=\"usajobs-vac-count text-center\" ng-class=\"{\'bg-clear\': filterStatus.active, \'text-primary\': filterStatus.active, \'bg-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active, \'text-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active}\">';
 		tmplt += '<span ng-show=\"filterStatus.active\"><strong>{{ jobs.JobData.visibleCount }}</strong> vacanc{{ jobs.JobData.visibleCount == 1 ? \"y\" : \"ies\"}} match{{ jobs.JobData.visibleCount == 1 ? \"es\" : \"\"}} your filter criteria</strong></span>';
 		tmplt += '<span ng-hide=\"filterStatus.active\">&nbsp;</span>';
 		tmplt += '</p>';
@@ -655,8 +726,7 @@
 	}
 	
 	/**
-	 * Controller for directive displaying the total number of job results as well the name of the organization
-	 * whose jobs are being displayed.
+	 * Controller for jobInfoDirective.
 	 */
 	jobInfoController.$inject = [ '$scope', 'Jobs' ];
 	function jobInfoController ($scope, Jobs) {
