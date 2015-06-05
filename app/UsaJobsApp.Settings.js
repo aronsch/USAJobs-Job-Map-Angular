@@ -4,7 +4,7 @@
 (function () {
 	angular.module('UsaJobsApp.Settings', []);
 	angular.module('UsaJobsApp.Settings').constant('settings', {
-			usaJobs : { // UsaJobs.gov REST API Settings
+			usaJobs : { // UsaJobs.gov Settings
 				// base of job query URL
 				baseUrl : 'https://data.usajobs.gov/api/jobs',
 				// job query org attribute
@@ -12,8 +12,9 @@
 				// job query result page attribute
 				pageAttr : '&Page=',
 				// URL of search results on USAJobs
-				searchBaseUrl : 'https://www.usajobs.gov/JobSearch/Search/GetResults?OrganizationID='
-				
+				searchBaseUrl : 'https://www.usajobs.gov/JobSearch/Search/GetResults?OrganizationID=',
+				//data format for date parsing
+				dateFormat : 'M/D/YYYY'
 			},
 			map : { // Leaflet.js map settings
 				center : [ 40.8282, -98.5795 ], // default map center - CONUS
