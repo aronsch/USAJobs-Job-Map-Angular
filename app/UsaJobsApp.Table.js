@@ -3,20 +3,13 @@
  * - Directive and controller for displaying job listings in a table.
  */
 (function () {
-	/**
-	 * Module Registration
-	 */
 	angular.module('UsaJobsApp.JobTable', [ 'UsaJobsApp.Data' ]);
 	
-	/**
-	 * Declarations
-	 */
+	/* Service Declarations */
 	angular.module('UsaJobsApp.JobTable').controller('jobTableCtrl', jobTableController);
 	angular.module('UsaJobsApp.JobTable').directive('jobTable', jobTableDirective);
 	
-	/**
-	 * Functions
-	 */
+	/* Service Functions */
 	
 	jobTableController.$inject = [ '$scope', '$filter', 'Jobs', 'eventService' ];
 	function jobTableController ($scope, $filter, Jobs, Events) {
@@ -29,7 +22,7 @@
 		$scope.clearFilters = clearFilters;
 		
 		/*
-		 * Manages transition between different sorting predicates by reverting
+		 * Manage transition between different sorting predicates by reverting
 		 * to default sort direction when the predicate changes.
 		 */
 		function setPredicate (newP) {
@@ -60,7 +53,6 @@
 				$scope.predicate = 'SalaryMax';
 				$scope.reverse = false;
 			}
-			
 		}
 		
 		/**
@@ -110,6 +102,7 @@
 				+ sortCaret('AnnouncementNumber', alphaIcons) + '</a></dt></dl>';
 		
 		tmplt += '</div>';
+		
 		/* Job List */
 		tmplt += '<ul class="usajobs-jobs-table-list list-unstyled">';
 		// Results loading alert
