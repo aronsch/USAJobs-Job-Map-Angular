@@ -5,62 +5,60 @@
  * - Centralized event emission and subscription service
  */
 (function () {
-	
 	angular.module('UsaJobsApp', [ 'UsaJobsApp.Data', 'UsaJobsApp.Filters', 'UsaJobsApp.Map', 'UsaJobsApp.JobTable',
-			'UsaJobsApp.Location', 'UsaJobsApp.Utilities', 'MomentModule', 'LeafletModule', 'PolyfillModule',
+			'UsaJobsApp.Location', 'UsaJobsApp.Utilities', 'MomentModule', 'LeafletModule',
 			'ui-rangeSlider' ]);
 	
-	/*
-	 * Module Services Declarations
-	 */
+	/* Service Declarations */
 	angular.module('UsaJobsApp').controller('UsaJobsAppController', AppController);
 	angular.module('UsaJobsApp').directive('orgCode', orgCodeDirective);
 	angular.module('UsaJobsApp').service('eventService', eventService);
 	
-	/*
-	 * Module Services Definition
-	 */
+	
+	/* Service Functions */
 
 	/**
 	 * UsaJobsApp App Controller
 	 */
 	AppController.$inject = [ '$scope', 'Jobs', 'eventService', 'settings' ];
-	function AppController ($scope, Jobs, events, settings) {
+	function AppController ($scope, Jobs, Events, settings) {
 		
 		$scope.jobs = Jobs;
+		
+		// Set Job service properties
 		$scope.jobs.orgCode = $scope.orgCode;
 		$scope.jobs.orgName = $scope.orgName;
 		$scope.orgSearchUrl = settings.usaJobs.searchBaseUrl + $scope.orgId;
 		$scope.jobs.orgSearchUrl = $scope.orgSearchUrl;
 		
+		// Get jobs
 		$scope.jobs.getJobs();
 		
+		/* Event handling */
 		// Watch for filter update, then update job visibility
-		events.filters.onChanged(onFilterChange);
+		Events.filters.onChanged(onFilterChange);
 		function onFilterChange (e, predicate) {
 			angular.forEach($scope.jobs.JobData, function (job) {
 				// default to empty predicate if none provided
 				job.setVisibleWithPredicate(predicate);
 			});
 			// broadcast notification that UI update is needed
-			events.jobs.updateVisible();
+			Events.jobs.updateVisible();
 		}
 		// Watch for filter clear, then set all jobs visible;
-		events.filters.onCleared(onFilterCleared);
+		Events.filters.onCleared(onFilterCleared);
 		function onFilterCleared () {
 			angular.forEach($scope.jobs.JobData, function (job) {
 				job.visible = true;
 			});
 			// broadcast notification that UI update is needed
-			events.jobs.updateVisible();
+			Events.jobs.updateVisible();
 		}
 	}
 	
 	/**
-	 * OrgId Directive detects the 'org-id' attribute and attaches the app
+	 * OrgId Directive detects the 'org-code' attribute and attaches the app
 	 * controller.
-	 * 
-	 * @return { Object }
 	 */
 	function orgCodeDirective () {
 		return {
@@ -68,7 +66,6 @@
 			scope : {
 				orgCode : '@',
 				orgName : '@',
-			
 			},
 			controller : 'UsaJobsAppController',
 		};
@@ -81,7 +78,7 @@
 	function eventService ($rootScope) {
 		var names = this.names = {}, jobs = this.jobs = {}, geodata = this.geodata = {}, filters = this.filters = {};
 		
-		// Event Names
+		/* Event Names */
 		names.jobs = {
 			available : 'usajobs.events.jobs-available',
 			updateVisible : 'usajobs.events.job-visibility-updated-needed',
@@ -101,7 +98,7 @@
 			location : 'usajobs.events.focus-set-location'
 		};
 		
-		// Job Data events
+		/* Job Data Events */
 		jobs.available = function () {
 			broadcast(names.jobs.available);
 		};
@@ -121,7 +118,7 @@
 			on(names.jobs.queryStarted, handlerFn);
 		};
 		
-		// Geodata events
+		/* Geodata Available Events */
 		geodata.available = function (location) {
 			broadcast(names.geodata.available, location);
 		};
@@ -135,32 +132,27 @@
 			on(names.geodata.notAvailable, handlerFn);
 		};
 		
-		// Job Data Filter events
+		/* Job Data Filter Events */
 		filters.changed = function (predicate) {
 			broadcast(names.filters.changed, predicate);
 		};
-		
 		filters.onChanged = function (handlerFn) {
 			on(names.filters.changed, handlerFn);
 		};
-		
 		filters.cleared = function (predicate) {
 			broadcast(names.filters.cleared);
 		};
-		
 		filters.onCleared = function (handlerFn) {
 			on(names.filters.cleared, handlerFn);
 		};
-		
 		filters.clear = function (predicate) {
 			broadcast(names.filters.clear);
 		};
-		
 		filters.onClear = function (handlerFn) {
 			on(names.filters.clear, handlerFn);
 		};
 		
-		// Shared broadcast and registration functions
+		// broadcast and registration functions
 		function broadcast (eventName, obj) {
 			$rootScope.$broadcast(eventName, obj);
 		}
