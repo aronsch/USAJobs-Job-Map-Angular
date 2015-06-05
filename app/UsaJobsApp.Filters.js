@@ -23,12 +23,13 @@
 		};
 	}
 	
-	dateDescriptionFilter.$inject = [ 'moment' ];
-	function dateDescriptionFilter (moment) {
+	
+	dateDescriptionFilter.$inject = [ 'moment', 'settings' ];
+	function dateDescriptionFilter (moment, settings) {
 		return function (input) {
-			var d, today, desc;
-			d = moment(input);
+			var d = moment(input, settings.usaJobs.dateFormat),
 			today = moment().diff(d, 'days') === 0;
+			
 			if (today) {
 				return 'today';
 			} else {
@@ -36,5 +37,4 @@
 			}
 		};
 	}
-	
 })();
