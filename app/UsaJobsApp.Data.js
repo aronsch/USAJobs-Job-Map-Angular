@@ -13,11 +13,9 @@
 	 * Module Registration
 	 */
 	angular.module('UsaJobsApp.Data', [ 'UsaJobsApp.Settings', 'UsaJobsApp.Filters', 'UsaJobsApp.Utilities',
-			'MomentModule', 'LeafletModule', 'PolyfillModule' ]);
+			'MomentModule', 'LeafletModule']);
 	
-	/*
-	 * Service Declarations
-	 */
+	/* Service Declarations */
 	angular.module('UsaJobsApp.Data').service('Jobs', Jobs);
 	angular.module('UsaJobsApp.Data').factory('Job', JobFactory);
 	angular.module('UsaJobsApp.Data').directive('jobFilter', jobFilterDirective);
@@ -27,9 +25,7 @@
 	angular.module('UsaJobsApp.Data').controller('vacancyCountDescController', vacancyCountDescController);
 	angular.module('UsaJobsApp.Data').controller('jobInfoController', jobInfoController);
 	
-	/*
-	 * Service Functions
-	 */
+	/* Service Functions */
 	
 	/**
 	 * USA Jobs Data Service
@@ -407,23 +403,27 @@
 	 */
 	function jobFilterDirective () {
 		var tmplt = '';
+		// Text filter
 		tmplt += '<div class="form row job-filter">';
 		tmplt += '<vacancy-count-desc></vacancy-count-desc>';
 		tmplt += '<div class="form-group col-xs-8 col-sm-9"><label for="filters.stringFilter.value" class="sr-only">Filter Vacancies</label>';
 		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"><button type="button" class="btn btn-xs btn-danger pull-right" style="position: absolute; right: 22px; top: 6px;" ng-show="filters.filterStatus.active" ng-click="reset()"><i class="fa fa-fw fa-close"></i>Clear Filters</button></div>';
 		tmplt += '<p class="col-xs-4 col-sm-3 text-right"><a class="btn btn-default usajobs-filters-advanced-btn" ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "Show"}} Advanced Filters</a></p>';
+		// Advanced filters
+		// Grade filter slider
 		tmplt += '<div ng-show="showAdvancedFilters">';
 		tmplt += '<div class="form-group col-xs-6 col-sm-6"><label for="grade-slider">Grade Filter</label>';
 		tmplt += '<div range-slider show-values="true" filter="grade" id="grade-slider" min="filters.gradeFilter.lowest" max="filters.gradeFilter.highest" model-min="filters.gradeFilter.min" model-max="filters.gradeFilter.max"></div></div>';
+		// Job salary slider
 		tmplt += '<div class="form-group col-xs-6 col-sm-6"><label for="salary-slider">Salary Filter</label>';
 		tmplt += '<div range-slider show-values="true" filter="currency" id="salary-slider" min="filters.salaryFilter.lowest" max="filters.salaryFilter.highest" step="10000" model-min="filters.salaryFilter.min" model-max="filters.salaryFilter.max"></div>';
 		tmplt += '</div>';
-
-		tmplt += '<div class="form-group  col-xs-12 col-sm-6"><label for="pay-plan-filter">Pay Basis &nbsp;</label>';
+		// Pay plan radio buttons
+		tmplt += '<div class="form-group col-xs-12 col-sm-6"><label for="pay-plan-filter">Pay Basis &nbsp;</label>';
 		tmplt += '<div id="pay-plan-filter" class="">';
-		tmplt += '<label for="allpb-radio"><input name="allpb-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.all"> Any&nbsp;</label>';
-		tmplt += '<label for="salaried-radio"><input name="salaried-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.salaried"> Salaried&nbsp;</label>';
-		tmplt += '<label for="hourly-radio"><input name="hourly-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.hourly"> Hourly&nbsp;</label>';
+		tmplt += '<label for="allpb-radio"><input name="allpb-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.all" ng-disabled="!jobs.resolved"> Any&nbsp;</label>';
+		tmplt += '<label for="salaried-radio"><input name="salaried-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.salaried" ng-disabled="!jobs.resolved"> Salaried&nbsp;</label>';
+		tmplt += '<label for="hourly-radio"><input name="hourly-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.hourly" ng-disabled="!jobs.resolved"> Hourly&nbsp;</label>';
 		tmplt += '</div></div>';
 		tmplt += '</div>';
 		tmplt += '</div>';
