@@ -1,81 +1,119 @@
 /**
- * @module UsaJobsMap Location module - Job Location management and location
- *         geocoding.
- *         TODO: GeoJobLocation object that inherits from JobLocation prototype.
+ * @module UsaJobsMap Location module
+ * 	   - Job Location object factory
+ * 	   - Geocoding Service
+ *         - Geodata Caching Service
  */
 (function () {
 	angular.module('UsaJobsApp.Location', []);
 	
-	angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocation);
+	/*
+	 * Module Service Registration and Function Binding
+	 */
+	angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocationFactory);
 	angular.module('UsaJobsApp.Location').service('geocodeService', geocodeService);
+	angular.module('UsaJobsApp.Location').service('geodataCache', geodataCache);
 	
-	JobLocation.$inject = ['geocodeService', 'eventService' ];
-	function JobLocation (geocodeService, events) {
-		return function (jobLoc) {
+	
+	/*
+	 * Module Service Functions
+	 */
+	
+	
+	/**
+	 * JobLocation Object Factory
+	 * Job location object that automatically requests its geolocation
+	 * when created. Emits a "location available" notification when geodata
+	 * is available.
+	 */
+	JobLocationFactory.$inject = ['geocodeService', 'eventService' ];
+	function JobLocationFactory (geocodeService, events) {
+		/** @constructor */
+		function JobLocation(jobLoc) {
 			angular.extend(this, jobLoc);
-			
-			/*
-			 * Function Definitions
-			 */
-			this.geodataAvailable = geodataAvailable;
-			this.setGeodata = setGeodata;
-			this.hasNoGeodata = hasNoGeodata;
-			this.visible = visible;
-			this.countVisible = countVisible;
-			
-			// finally, get geographic location of this location
+			// request geocoding
 			geocodeService.geocode(this);
-			
-			/*
-			 * Functions
-			 */
+		}
+		
+		/*
+		* Prototype Function Bindings
+		*/
+		JobLocation.prototype.geodataAvailable = geodataAvailable;
+		JobLocation.prototype.setGeodata = setGeodata;
+		JobLocation.prototype.hasNoGeodata = hasNoGeodata;
+		JobLocation.prototype.visible = visible;
+		JobLocation.prototype.countVisible = countVisible;
+		
+		/*
+		 * Prototype Functions
+		 */
 
-			// Broadcast notification that new geodata is available for plotting
-			function geodataAvailable () {
-				events.geodata.available(this);
-			}
+		/**
+		 * Emit notification alerting app that geodata is available and include
+		 * a reference to this object.
+		 */
+		function geodataAvailable () {
+			events.geodata.available(this);
+		}
+		
+		/**
+		 * Broadcast notification to app that geodata could not be found and include
+		 * a reference to this object.
+		 */
+		function hasNoGeodata (errorMsg) {
+			this.noGeodataReason = errorMsg;
+			events.geodata.notAvailable(this);
+		}
+		
+		/**
+		 * Set geographic location for this this object and broadcast notification
+		 * of available geodata to app.
+		 */
+		function setGeodata (geodata) {
+			this.geodata = geodata;
+			this.geodataAvailable();
+		}
+		
+		/**
+		 * Indicate whether this location should be visible on a map. Mark the
+		 * location as visible if any of the jobs associated with it are visible.
+		 * @returns {Boolean}
+		 */
+		function visible () {
+			var i, visible = false;
 			
-			// Broadcast notification that geodata could not be found
-			function hasNoGeodata (errorMsg) {
-				this.noGeodataReason = errorMsg;
-				events.geodata.notAvailable(this);
-			}
-			
-			// Set geographic location data for this Location and
-			// broadcast notification
-			function setGeodata (geodata) {
-				this.geodata = geodata;
-				this.geodataAvailable();
-			}
-			
-			// Iterate through jobs at location.
-			// Mark the location as visible if any of the jobs
-			// associated with it are visible.
-			function visible () {
-				var i, visible = false;
-				
-				for (i = 0; i < this.jobs.length; i++) {
-					if (this.jobs[i].visible === true) {
-						visible = true;
-						break;
-					}
+			for (i = 0; i < this.jobs.length; i++) {
+				if (this.jobs[i].visible === true) {
+					visible = true;
+					break;
 				}
-				return visible;
 			}
-			
-			function countVisible () {
-				var c = 0;
-				angular.forEach(this.jobs, function (job) {
-					if (job.visible) c++;
-				});
-				return c;
-			}
-			
-		};
+			return visible;
+		}
+		
+		/**
+		 * Count the number of jobs at this location that are marked as
+		 * visible.
+		 * @returns {Number}
+		 */
+		function countVisible () {
+			var c = 0;
+			angular.forEach(this.jobs, function (job) {
+				if (job.visible) c++;
+			});
+			return c;
+		}
+		
+		return JobLocation;
 	}
 	
-	geocodeService.$inject = [ '$http', '$timeout' ];
-	function geocodeService ($http, $timeout) {
+	/**
+	 * Geocoding Service
+	 * Queues and processes geocoding requests. Designed to accomodate rate limits of geocoding services.
+	 * Geodata is cached and used whenever possible.
+	 */
+	geocodeService.$inject = [ '$http', '$timeout', 'geodataCache' ];
+	function geocodeService ($http, $timeout, geodataCache) {
 		// Standard query generation and data normalization
 		// functions for geocoding services.
 		// TODO: Extensible via user-provided query and normalization
@@ -83,7 +121,7 @@
 		this.geocode = function geocode (location) {
 			var geodata;
 			// check if location data is cached
-			if ((geodata = this.geodataCache.getLocation(location.name))) {
+			if ((geodata = geodataCache.getLocation(location.name))) {
 				// set geodata from cached location
 				location.setGeodata(geodata);
 			} else {
@@ -257,7 +295,7 @@
 					location.hasNoGeodata('Geolocation service over query limit');
 
 				} else if (data.results.length === 0) {
-					// If there are no geocode results
+					// Handle no geocode results
 					location.hasNoGeodata('Location not found');
 
 				} else {
@@ -266,7 +304,7 @@
 					geoLoc.name = location.name;
 					angular.extend(geodata, geoLoc);
 					location.setGeodata(geodata);
-					scope.geodataCache.addLocations(geoLoc);
+					geodataCache.addLocations(geoLoc);
 				}
 			});
 			geodata.$promise.error(function (data) {
@@ -294,84 +332,126 @@
 				return Math.round((this.returnedCount / this.requestCount * 100));
 			}
 		};
-		// Cache and retrieve Geodata from geocoding calls
-		this.geodataCache = {
-			// The geodata cache. Parsed into object array once on page load.
-			geodata : (function () {
-				if (angular.isUndefined(window.localStorage)) {
-					// if browser does not support
-					// HTML5 local storage, we return
-					// empty array as placeholder
-					return {};
-				} else if (angular.isDefined(localStorage.geodataCache)) {
-					// on startup, parse and return cached geodata
-					return JSON.parse(localStorage.geodataCache);
-				} else {
-					// or instantiate
-					localStorage.geodataCache = JSON.stringify({});
-					return {};
-				}
-			})(),
-			// Generate array of location names
-			locNameArr : function () {
-				var arr = [];
-				angular.forEach(this.geodata, function (loc) {
-					arr.push(loc.name);
-				}, this);
-				return arr;
-			},
-			// Return existing geodata object
-			getLocation : function (locName) {
-				return this.geodata[locName];
-			},
-			// Add any number of locations to cache
-			addLocations : function () {
-				var locs = [].slice.call(arguments, 0);
-				
-				this.queue.push(locs);
-				this.runQueue();
-			},
-			queue : [],
-			queueRunning : false,
-			// queue additions to cache to prevent callback race
-			// conditions
-			runQueue : function () {
-				var items, newItems = {}, locs;
-				if (!this.queueRunning) {
-					this.queueRunning = true;
-					locs = this.geodata;
-					while (this.queue.length > 0) {
-						items = this.queue.shift();
-						
-						angular.forEach(items, function (loc) {
-							if (!this.exists(loc)) {
-								newItems[loc.name] = loc;
-							}
-						}, this);
-						angular.extend(locs, newItems);
-					}
-					this.cacheLocations(locs);
-					this.queueRunning = false;
-				}
-			},
-			cacheLocations : function (locs) {
-				this.geodata = locs;
-				// Skip caching in non-HTML5 browsers
-				if (!window.localStorage) {
-
-				} else {
-					
-					localStorage.geodataCache = JSON.stringify(locs);
-				}
-			},
-			exists : function (loc) {
-				// check for location name in stringified storage
-				if (window.localStorage) {
-					return localStorage.geodataCache.indexOf(loc.name) !== -1;
-				} else {
-					return false;
-				}
+	}
+	
+	/**
+	 * Geodata Caching Service
+	 * Cache and retrieve Geodata from geocoding calls
+	 */
+	geodataCache.$inject = [ '$timeout' ];
+	function geodataCache ($timeout) {
+		
+		var queue = [], // Geodata cache addition queue
+		queueRunning = false, // Status of geodata queue processing
+		geodata; 
+		
+		// The geodata cache
+		this.geodata = geodata = (function () {
+			// The stringified cache is parsed and returned once at startup
+			if (angular.isUndefined(window.localStorage)) {
+				// if browser does not support HTML5 local storage, return
+				// set empty object placeholder
+				return {};
+			} else if (angular.isDefined(localStorage.geodataCache)) {
+				// on startup, parse and set cached geodata
+				return JSON.parse(localStorage.geodataCache);
+			} else {
+				// or instantiate the cache if it doesn't exist
+				localStorage.geodataCache = JSON.stringify({});
+				return {};
 			}
+		})();
+		
+		/*
+		 * Public Function Bindings
+		 */
+		this.locNameArr = locNameArr;
+		this.getLocation = getLocation;
+		this.addLocations = addLocations;
+		
+		/*
+		 * Functions
+		 */
+		
+		/**
+		 * @public Returns an array of location names
+		 * @returns { Array }
+		 */
+		function locNameArr () {
+			var arr = [];
+			angular.forEach(this.geodata, function (loc) {
+				arr.push(loc.name);
+			}, this);
+			return arr;
+		}
+		
+		/**
+		 * @public Return a cached geolocation, if it exists
+		 * @returns { * }
+		 */
+		function getLocation (locName) {
+			return this.geodata[locName];
 		};
+		
+		/**
+		 * @public Add all geolocations provided to geodata caching queue
+		 * and begin processing.
+		 */ 
+		function addLocations () {
+			var locs = [].slice.call(arguments, 0);
+			queue.push(locs);
+			runQueue();
+		}
+		
+		/**
+		 * @private Add geodata in queue to the cache
+		 */
+		function runQueue () {
+			var items, newItems = {};
+			if (!queueRunning) {
+				queueRunning = true;
+				while (queue.length > 0) {
+					items = queue.shift();
+					angular.forEach(items, function (loc) {
+						// if location doesn't exist in cache,
+						// add it to collection of new items
+						if (!exists(loc)) {
+							newItems[loc.name] = loc;
+						}
+					}, this);
+					// extend locations with new items
+					angular.extend(geodata, newItems);
+				}
+				// Stringify and cache location data
+				cacheLocations(geodata);
+				queueRunning = false;
+			}
+		}
+		
+		/**
+		 * @public Stringify and cache provided geodata
+		 * @argument { Array } Array of all current geodata
+		 */
+		function cacheLocations (locs) {
+			this.geodata = locs;
+			// Cache in localstorage if supported
+			if (angular.isDefined(window.localStorage)) {
+				localStorage.geodataCache = JSON.stringify(locs);
+			}
+			// Skip caching in non-HTML5 browsers
+		}
+		
+		/**
+		 * @public Check for location name in stringified storage
+		 * @argument { JobLocation }
+		 * @returns { Boolean }
+		 */
+		function exists (loc) {
+			if (window.localStorage) {
+				return localStorage.geodataCache.indexOf(loc.name) !== -1;
+			} else {
+				return false;
+			}
+		}
 	}
 })();
