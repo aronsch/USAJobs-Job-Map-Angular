@@ -7,15 +7,14 @@
 <!-- CSS -->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type='text/css'>
     <link href="bower_components/leaflet/dist/leaflet.css" rel="stylesheet" type="text/css">
-    <link href="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js" rel="stylesheet" type="text/css">
+    <link href="bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet" type="text/css">
     <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<!-- USAJobsApp CSS -->
     <link href="css/usa-jobs-map.css" rel="stylesheet" type="text/css">
-<!-- Page CSS -->
     <style type="text/css">
+        /* Page Font */
         * {
-        font-family: "open sans", helvetica, sans-serif
+	    font-family: "open sans", helvetica, sans-serif
         }
         /* Map Element Sizing */
         .usajobs-map {
@@ -26,18 +25,18 @@
             margin-bottom: 5px;
         }
     </style>
-    <title>Job Vacancies</title>
+    <title>USAJobs Job Listings</title>
 </head>
 <body class="container">
 
     <!-- USAJobsApp Application Element-->
-	<div ng-app="UsaJobsApp" org-id="ARCE" org-name="Army Corp of Engineers">
-        <org-browser></org-browser>
-		<job-info></job-info>
-		<job-map></job-map>
-		<job-filter></job-filter>
-		<job-table></job-table>
-	</div>
+    <div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
+    <org-browser></org-browser>
+	<job-info></job-info>
+	<job-map></job-map>
+	<job-filter></job-filter>
+	<job-table></job-table>
+    </div>
 
     <!-- JS Dependencies -->
     <script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
@@ -46,15 +45,15 @@
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
 
-	<!-- UsaJobsApp JS -->
-	<script type="text/javascript" src="app/UsaJobsApp.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.Filters.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.Data.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.Location.js"></script>
-	<script type="text/javascript" src="app/UsaJobsApp.Table.js"></script>
+    <!-- UsaJobsApp JS -->
+    <script type="text/javascript" src="app/UsaJobsApp.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Filters.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Data.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Location.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Table.js"></script>
 
     <!-- Demo Org Browser Extension -->
     <script type="text/javascript" src="bower_components/x2js/xml2json.min.js"></script>
@@ -67,10 +66,6 @@
             angular.module('UsaJobsApp').directive('orgBrowser', orgBrowserDirective);
             angular.module('UsaJobsApp').controller('orgBrowserController', orgBrowserController);
 
-			/**
-			 * Directive providing dropdown for selecting from a list of Federal Government organizations
-			 * from USAJobs.gov XML reference file.
-			 */
             function orgBrowserDirective () {
                 var tmplt = '';
                 tmplt += '<div class="form form-horizontal">';
@@ -83,13 +78,9 @@
                     template : tmplt
                 };
             }
-            
-            /**
-			 * Controller for Directive providing dropdown for selecting from a list of Federal Government organizations
-			 * from USAJobs.gov XML reference file.
-			 */
-            orgBrowserController.$inject = [ '$scope', 'Jobs', '$http', 'unique' ]
-            function orgBrowserController ($scope, Jobs, $http, unique) {
+
+            orgBrowserController.$inject = [ '$scope', 'Jobs', '$http', 'unique', 'settings', 'eventService' ];
+            function orgBrowserController ($scope, Jobs, $http, unique, settings, Events) {
                 $scope.jobs = Jobs;
                 $scope.agencies = [];
                 $scope.agencyOptions = agencyOptions;
@@ -98,13 +89,12 @@
                 // Trigger on selection change
                 $scope.$watch('selectedOrg', onOrgSelected);
 
-				// Retrieve Federal agency sub-element XML reference document from USAJobs.gov
                 $http.get('https://schemas.usajobs.gov/Enumerations/AgencySubElement.xml')
                         .success(agencyXmlDocResolved);
 
                 /**
-                 * Returns list of agencies that will be displayed in dropdown.
-                 * @returns { Array }
+                 * Returns all
+                 * @returns {Array}
                  */
                 function agencyOptions () {
                     var opts = [];
@@ -115,21 +105,22 @@
                     });
                     return opts;
                 }
-                
-                /**
-                 * Update Jobs data service org settings, then request new job results
-                 * for current organization.
-                 */
+
                 function onOrgSelected(org) {
+		    
                     if (angular.isDefined(org.Code) && angular.isDefined(org.Value)) {
-                        $scope.jobs.orgId = org.Code;
+			Events.filters.clear(); // clear current filter settings
+                        $scope.jobs.orgCode = org.Code;
                         $scope.jobs.orgName = org.Value;
+			$scope.jobs.orgSearchUrl = settings.usaJobs.searchBaseUrl + org.Code;
                         $scope.jobs.getJobs();
                     }
                 }
 
                 function agencyXmlDocResolved (data) {
-                    var x2js = new X2JS(), json = x2js.xml_str2json(data);
+                    var x2js = new X2JS(), 
+                    json = x2js.xml_str2json(data);
+                    
                     addParentNames(json);
                     $scope.agencies = json.CodeLists.CodeList.ValidValue;
                     sortAgencies();
@@ -144,6 +135,7 @@
                                 if (a.Value < b.Value) {
                                     return -1;
                                 }
+                                // a must be equal to b
                                 return 0;
                             });
                 }
