@@ -1,24 +1,18 @@
 /**
  * @module UsaJobsMap Location module
- * 	   - Job Location object factory
+ * 	   - Job Location Factory
  * 	   - Geocoding Service
  *         - Geodata Caching Service
  */
 (function () {
 	angular.module('UsaJobsApp.Location', []);
 	
-	/*
-	 * Module Service Registration and Function Binding
-	 */
+	/* Service Declaration */
 	angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocationFactory);
 	angular.module('UsaJobsApp.Location').service('geocodeService', geocodeService);
 	angular.module('UsaJobsApp.Location').service('geodataCache', geodataCache);
 	
-	
-	/*
-	 * Module Service Functions
-	 */
-	
+	/* Service Functions */
 	
 	/**
 	 * JobLocation Object Factory
@@ -35,18 +29,14 @@
 			geocodeService.geocode(this);
 		}
 		
-		/*
-		* Prototype Function Bindings
-		*/
+		/* Prototype Function Bindings */
 		JobLocation.prototype.geodataAvailable = geodataAvailable;
 		JobLocation.prototype.setGeodata = setGeodata;
 		JobLocation.prototype.hasNoGeodata = hasNoGeodata;
 		JobLocation.prototype.visible = visible;
 		JobLocation.prototype.countVisible = countVisible;
 		
-		/*
-		 * Prototype Functions
-		 */
+		/* Prototype Functions */
 
 		/**
 		 * Emit notification alerting app that geodata is available and include
@@ -116,8 +106,7 @@
 	function geocodeService ($http, $timeout, geodataCache) {
 		// Standard query generation and data normalization
 		// functions for geocoding services.
-		// TODO: Extensible via user-provided query and normalization
-		// functions.
+		// TODO: Clean up legacy geocoding api options
 		this.geocode = function geocode (location) {
 			var geodata;
 			// check if location data is cached
