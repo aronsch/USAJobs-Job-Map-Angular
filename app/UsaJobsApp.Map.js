@@ -7,7 +7,7 @@
  *         - Job Map controller to handle marker management and marker visibility
  *         - Alaska view map control - TODO: make this an external module
  *         - Map reset view map control - TODO: make this a button that doesn't require an asset
- *         - Map default options value 
+ *         - Map marker defaults provider
  */
 (function () {
 	angular.module('UsaJobsApp.Map', [ 'LeafletModule', 'UsaJobsApp.Settings', 'UsaJobsApp.Utilities',
@@ -20,6 +20,7 @@
 	angular.module('UsaJobsApp.Map').controller('JobMapController', JobMapController);
 	angular.module('UsaJobsApp.Map').factory('akMapControl', akMapControl);
 	angular.module('UsaJobsApp.Map').factory('mapResetControl', mapResetControl);
+	angular.module('UsaJobsApp.Map').service('mapMarkerDefaults', mapMarkerDefaults);
 	
 	/*
 	 * Module Service Functions
@@ -431,7 +432,7 @@
 				
 				// Add geodata tracking UI element
 				addGeodataStatusEl();
-				// No Geodata Found List
+				// Add No Geodata Available List
 				addNoGeolocList();
 				
 				$compile(element.contents())(scope);
@@ -442,9 +443,12 @@
 				 * Functions
 				 */
 				function addGeodataStatusEl () {
-					var el = angular
-							.element('<div class="geodata-status center-block" ng-show="geodataStatus.loading"><i class="fa fa-fw fa-circle-o-notch fa-spin"></i> {{ geodataStatus.resolvedCount }} of {{ geodataStatus.pendingCount }} job locations mapped</div>');
-					// $compile(el)(scope);
+					elStr = '';
+					elStr += '<div class="geodata-status center-block" ng-show="geodataStatus.loading">';
+					elStr += '<i class="fa fa-fw fa-circle-o-notch fa-spin"></i> {{ geodataStatus.resolvedCount }} of {{ geodataStatus.pendingCount }} job locations mapped';
+					elStr += '</div>';
+					var el = angular.element(elStr);
+
 					element.append(el);
 				}
 				
@@ -596,7 +600,6 @@
 	/**
 	 * Default Map Markers provider
 	 */
-	angular.module('UsaJobsApp.Map').service('mapMarkerDefaults', mapMarkerDefaults);
 	mapMarkerDefaults.$inject = [ '$filter', 'unique', 'leaflet', 'settings' ];
 	function mapMarkerDefaults ($filter, unique, leaflet, settings) {
 		
@@ -650,36 +653,33 @@
 							location.name + '<br>' + '<span class="small text-muted">' + jobCountStr + '</span>'));
 					
 					ul = angular.element('<ul class="loc-popup-job-list list-unstyled" />');
-					angular
-							.forEach(
-									jobs,
-									function (job) {
-										if (!job.visible) return;
-										li = angular.element('<li class="loc-popup-job-list-item clearfix"></li>');
-										a = angular
-												.element('<a class="loc-popup-job-list-item-link"></a>')
-												.attr('href', job.ApplyOnlineURL)
-												.attr('target', '_blank')
-												.html(job.JobTitle.replace(/-/g, '&#8209;'))
-												.attr(
-														'title',
-														job.JobTitle
-																+ '\r\nClick to go to USAJobs.gov and view this job announcement');
-										spanGrd = angular.element(
-												'<span class="loc-popup-job-list-item-tag small"></span>').html(
-												job.PayPlan + '&#8209;' + job.Grade).attr('title', 'Grade');
-										spanSal = angular.element(
-												'<span class="loc-popup-job-list-item-tag pull-right small"></span>')
-												.html(
-														$filter('trailingzeroes')(
-																job.SalaryMin + '&#8209;' + job.SalaryMax)).attr(
-														'title', 'Salary');
-										
-										li.append(a);
-										li.append(spanGrd);
-										li.append(spanSal);
-										ul.append(li);
-									}, this);
+					angular.forEach(jobs, function (job) {
+						if (!job.visible) return;
+						li = angular.element('<li class="loc-popup-job-list-item clearfix"></li>');
+						a = angular
+								.element('<a class="loc-popup-job-list-item-link"></a>')
+								.attr('href', job.ApplyOnlineURL)
+								.attr('target', '_blank')
+								.html(job.JobTitle.replace(/-/g, '&#8209;'))
+								.attr(
+										'title',
+										job.JobTitle
+												+ '\r\nClick to go to USAJobs.gov and view this job announcement');
+						spanGrd = angular.element(
+								'<span class="loc-popup-job-list-item-tag small"></span>').html(
+								job.PayPlan + '&#8209;' + job.Grade).attr('title', 'Grade');
+						spanSal = angular.element(
+								'<span class="loc-popup-job-list-item-tag pull-right small"></span>')
+								.html(
+										$filter('trailingzeroes')(
+												job.SalaryMin + '&#8209;' + job.SalaryMax)).attr(
+										'title', 'Salary');
+						
+						li.append(a);
+						li.append(spanGrd);
+						li.append(spanSal);
+						ul.append(li);
+					}, this);
 					
 					div.append(ul);
 					
@@ -811,54 +811,54 @@
 	mapResetControl.$inject = [ 'leaflet' ];
 	function mapResetControl (leaflet) {
 		return leaflet.Control
-				.extend({
-					options : {
-						position : 'topright'
-					},
-					onAdd : function (map) {
-						var container, img, imgURL, isRetina = window.devicePixelRatio >= 1.5;
-						
-						imgURL = isRetina ? 'http://www.bia.gov/cs/groups/webteam/documents/document/vacmap_zoomreturn_icon_retina.png'
-								: 'http://www.bia.gov/cs/groups/webteam/documents/document/vacmap_zoomreturn_icon.png';
-						
-						// container = leaflet.DomUtil.create('div',
-						// 'map-viewreset-control');
-						container = leaflet.DomUtil.create('div', 'map-viewreset-control');
-						img = leaflet.DomUtil.create('img', 'map-viewreset-control-img', container);
-						$(img).attr('src', imgURL).css('width', '100px').css('height', '73px');
-						
-						$(container).hide();
-						// return map view to starting view when clicked
-						// provides users an escape hatch while exploring the
-						// map
-						leaflet.DomEvent.addListener(container, 'click', leaflet.DomEvent.stopPropagation).addListener(
-								container, 'click', leaflet.DomEvent.preventDefault).addListener(container, 'click',
-								function () {
-									map.closePopup();
-									map.resetMapView();
-								});
-						
-						// show when map view is not at starting zoom
-						map.on('zoomend', function (e) {
-							if (e.target.mapAtDefaultZoom()) {
-								$(container).fadeIn(100);
-							} else {
-								$(container).fadeOut(100);
-							}
-						});
-						
-						// show when map view center moves from starting
-						// position
-						map.on('moveend', function (e) {
-							if (!e.target.mapViewCentered()) {
-								$(container).fadeIn(100);
-							} else {
-								$(container).fadeOut(100);
-							}
-						});
-						
-						return container;
-					}
-				});
+			.extend({
+				options : {
+					position : 'topright'
+				},
+				onAdd : function (map) {
+					var container, img, imgURL, isRetina = window.devicePixelRatio >= 1.5;
+					
+					imgURL = isRetina ? 'http://www.bia.gov/cs/groups/webteam/documents/document/vacmap_zoomreturn_icon_retina.png'
+							: 'http://www.bia.gov/cs/groups/webteam/documents/document/vacmap_zoomreturn_icon.png';
+					
+					// container = leaflet.DomUtil.create('div',
+					// 'map-viewreset-control');
+					container = leaflet.DomUtil.create('div', 'map-viewreset-control');
+					img = leaflet.DomUtil.create('img', 'map-viewreset-control-img', container);
+					$(img).attr('src', imgURL).css('width', '100px').css('height', '73px');
+					
+					$(container).hide();
+					// return map view to starting view when clicked
+					// provides users an escape hatch while exploring the
+					// map
+					leaflet.DomEvent.addListener(container, 'click', leaflet.DomEvent.stopPropagation).addListener(
+							container, 'click', leaflet.DomEvent.preventDefault).addListener(container, 'click',
+							function () {
+								map.closePopup();
+								map.resetMapView();
+							});
+					
+					// show when map view is not at starting zoom
+					map.on('zoomend', function (e) {
+						if (e.target.mapAtDefaultZoom()) {
+							$(container).fadeIn(100);
+						} else {
+							$(container).fadeOut(100);
+						}
+					});
+					
+					// show when map view center moves from starting
+					// position
+					map.on('moveend', function (e) {
+						if (!e.target.mapViewCentered()) {
+							$(container).fadeIn(100);
+						} else {
+							$(container).fadeOut(100);
+						}
+					});
+					
+					return container;
+				}
+			});
 	}
 })();
