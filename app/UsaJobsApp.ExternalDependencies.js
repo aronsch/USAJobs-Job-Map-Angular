@@ -18,9 +18,15 @@
 	angular.module('LeafletModule', []).factory('leaflet', [ '$window', function ($window) {
 		return $window.L;
 	} ]);
-	
+})();
+ 
+/**
+ * App Global Utility Functions Module
+ */
+
+(function () {
 	/*
-	 * Utilities
+	 * @module Utilities
 	 */
 	angular.module('UsaJobsApp.Utilities', []);
 	angular.module('UsaJobsApp.Utilities').constant('unique', function (array) {
@@ -35,63 +41,15 @@
 		return a;
 	});
 	
-	angular.module('UsaJobsApp.Utilities').constant('uniqueForProperty', function (array, property) {
-		var i, item, a = Array(array.length);
-		for (i = 0; i < a.length; ++i) {
-			item = array[i];
-			a[i] = item[property];
-		}
-		return this.uniq(a);
-	});
-	
 	angular.module('UsaJobsApp.Utilities').constant('pluralize', function (count, root, singular, plural) {
 		return (count != 1) ? (root + plural) : (root + singular);
 	});
-	
-	/*
-	 * @module Polyfill
-	 */
-	angular
-			.module('PolyfillModule', [])
-			.factory(
-					'keys',
-					function () {
-						if (Object.keys) {
-							return Object.keys;
-						} else {
-							return (function () {
-								'use strict';
-								var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({
-									toString : null
-								}).propertyIsEnumerable('toString'), dontEnums = [ 'toString', 'toLocaleString',
-										'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
-										'constructor' ], dontEnumsLength = dontEnums.length;
-								
-								return function (obj) {
-									if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) { throw new TypeError(
-											'Object.keys called on non-object'); }
-									
-									var result = [], prop, i;
-									
-									for (prop in obj) {
-										if (hasOwnProperty.call(obj, prop)) {
-											result.push(prop);
-										}
-									}
-									
-									if (hasDontEnumBug) {
-										for (i = 0; i < dontEnumsLength; i++) {
-											if (hasOwnProperty.call(obj, dontEnums[i])) {
-												result.push(dontEnums[i]);
-											}
-										}
-									}
-									return result;
-								};
-							}());
-						}
-					});
-	
+})();
+ 
+/*
+ * Polyfill for older browsers
+ */
+(function () {
 	/*
 	 * Angular RangeSlider Directive Version: 0.0.13 Author: Daniel Crisp,
 	 * danielcrisp.com The rangeSlider has been styled to match the default
@@ -123,12 +81,8 @@
 	 * 
 	 * @directive
 	 */
-	angular
-			.module('ui-rangeSlider', [])
-			.directive(
-					'rangeSlider',
-					[
-							'$document',
+	angular.module('ui-rangeSlider', []).directive('rangeSlider',
+						       ['$document',
 							'$filter',
 							'$log',
 							function ($document, $filter, $log) {
