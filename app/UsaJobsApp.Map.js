@@ -28,25 +28,21 @@
 	JobMapController.$inject = [ '$scope', '$rootScope', 'eventService', 'leaflet', 'unique', 'JobLocation',
 			'mapMarkerDefaults', 'Jobs' ];
 	function JobMapController ($scope, $rootScope, events, leaflet, unique, JobLocation, markerDefaults, Jobs) {
-		/*
-		 * Scope variables
-		 */
+		/* Scope variables */
 		$scope.jobs = Jobs;
 		$scope.markers = []; // Marker tracking collection
 		$scope.markerLookup = {}; // Marker lookup collection
 		$scope.locations = []; // JobLocation tracking collection
 		
-		/*
-		 * Event bindings
-		 */
+		/* Event bindings */
 		events.jobs.onAvailable(onJobsResolved);
 		events.jobs.onUpdateVisible(updateVisible);
+		events.jobs.onQueryStarted(resetMarkers);
 		events.geodata.onAvailable(onGeodataAvailable);
 		events.geodata.onNotAvailable(onGeodataNotAvailable);
-		events.jobs.onQueryStarted(resetMarkers);
-		/*
-		 * Public Function bindings
-		 */
+		events.location.onSetAttribution(addGeocodeAttribution);
+		
+		/* Public Function bindings */
 		$scope.updateMarkers = updateMarkers;
 		$scope.updateVisible = updateVisible;
 		$scope.addMarker = addMarker;
@@ -61,7 +57,6 @@
 
 		/** @private Called when Job resources resolves */
 		function onJobsResolved () {
-			
 			// Create visual job count overlay layer
 			prepareJobCountLayer();
 			
@@ -99,6 +94,10 @@
 			$scope.locationsNoGeodata.updateJobCount();
 			$scope.geodataStatus.addResolved();
 			console.log(L);
+		}
+		
+		function addGeocodeAttribution (e, str) {
+			$scope.map.attributionControl.addAttribution(str);
 		}
 		
 		/**
