@@ -32,4 +32,3 @@ To start the app, define the following attributes on the app element:
 
 ### Geodata
 - Implement support for external geodata file
-- Re-implement geodata attribution
