@@ -31,6 +31,9 @@
 		$scope.orgSearchUrl = settings.usaJobs.searchBaseUrl + $scope.orgId;
 		$scope.jobs.orgSearchUrl = $scope.orgSearchUrl;
 		
+		// Public Functions
+		
+		
 		// Get jobs
 		$scope.jobs.getJobs();
 		
@@ -76,7 +79,11 @@
 	 */
 	eventService.$inject = [ '$rootScope' ];
 	function eventService ($rootScope) {
-		var names = this.names = {}, jobs = this.jobs = {}, geodata = this.geodata = {}, filters = this.filters = {};
+		var names = this.names = {},
+		    jobs = this.jobs = {},
+		    geodata = this.geodata = {},
+		    location = this.location = {},
+		    filters = this.filters = {};
 		
 		/* Event Names */
 		names.jobs = {
@@ -88,6 +95,9 @@
 			available : 'usajobs.events.geodata-available',
 			notAvailable : 'usajobs.events.geodata-not-available'
 		};
+		names.location = {
+			setAttribution: 'usajobs.events.location.set-geocoding-attribution'
+		}
 		names.filters = {
 			changed : 'usajobs.events.filter-values-changed',
 			cleared : 'usajobs.events.filter-values-cleared',
@@ -130,6 +140,14 @@
 		};
 		geodata.onNotAvailable = function (handlerFn) {
 			on(names.geodata.notAvailable, handlerFn);
+		};
+		
+		/* Location Module Events */
+		location.setAttribution = function (str) {
+			broadcast(names.location.setAttribution, str);
+		}
+		location.onSetAttribution = function (handlerFn) {
+			on(names.location.setAttribution, handlerFn);
 		};
 		
 		/* Job Data Filter Events */
