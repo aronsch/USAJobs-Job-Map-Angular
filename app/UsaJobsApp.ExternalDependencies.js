@@ -46,8 +46,9 @@
 	});
 })();
  
+
 /*
- * Polyfill for older browsers
+ * Rangeslide UI Module
  */
 (function () {
 	/*
