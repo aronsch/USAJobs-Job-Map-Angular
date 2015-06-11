@@ -43,15 +43,15 @@
 		 * is used for descending sort.
 		 */
 		function setSalaryPredicate () {
-			if ($scope.predicate === 'SalaryMin') {
-				$scope.predicate = 'SalaryMax';
-				$scope.reverse = false;
-			} else if ($scope.predicate === 'SalaryMax') {
-				$scope.predicate = 'SalaryMin';
+			if ($scope.predicate === 'salaryMinInt') {
+				$scope.predicate = 'salaryMaxInt';
+				$scope.reverse = true;
+			} else if ($scope.predicate === 'salaryMaxInt') {
+				$scope.predicate = 'salaryMinInt';
 				$scope.reverse = false;
 			} else {
-				$scope.predicate = 'SalaryMax';
-				$scope.reverse = false;
+				$scope.predicate = 'salaryMaxInt';
+				$scope.reverse = true;
 			}
 		}
 		
@@ -150,8 +150,8 @@
 		
 		// Specialized sort caret builder for Salary sorting
 		function sortSalaryCaret (predicate) {
-			return '<i class="fa fa-fw" ng-class="{\'' + amntIcons.down + '\': predicate===\'SalaryMax\', \''
-					+ amntIcons.up + '\': predicate===\'SalaryMin\'}"></i>';
+			return '<i class="fa fa-fw" ng-class="{\'' + amntIcons.down + '\': predicate===\'salaryMaxInt\', \''
+					+ amntIcons.up + '\': predicate===\'salaryMinInt\'}"></i>';
 		}
 		
 		return {
