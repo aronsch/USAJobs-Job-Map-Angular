@@ -1,7 +1,44 @@
-
+/*
+ *
+ * USAJobsApp CSS
+ *
+ */
 a {
 	cursor: pointer;
 }
+
+/**
+ * Job Filter
+ */
+
+.usajobs-filters-advanced-btn {
+	width: 100%;
+}
+
+/**
+ * Job Table
+ */
+
+.usajobs-table-column-titles dl {
+	margin-bottom: 10px;
+}
+
+/* Reduce bottom margin on job table job details*/
+div.usajobs-table-item-job-details dl {
+	margin-bottom: 10px;
+}
+
+/* Buttons In job table job details */
+div.usajobs-table-item-job-details btn,
+div.usajobs-table-item-job-details btn-xs {
+	width: 100% !important;
+}
+
+/**
+ * Map Elements
+ */
+
+/* Geocoding status indicator */
 div.geodata-status {
 	position: relative;
 	display: block;
@@ -10,6 +47,7 @@ div.geodata-status {
 	width: 200px;
 }
 
+/* List of job locations without location information */
 div.loc-no-geodata-list {
 	z-index: 999;
 	right: 4px;
@@ -23,21 +61,18 @@ div.loc-no-geodata-list {
 	box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
 }
 
+div.loc-no-geodata-list .alert {
+	margin-bottom: 5px;
+}
+
+/* Height limiter for no-geodata job list */
 div.loc-no-geodata-list-container {
 	display: block;
 	max-height: 225px;
 	overflow-y: auto;
 }
 
-div.usajobs-table-item-job-details dl {
-	margin-bottom: 10px;
-}
-
-div.usajobs-table-item-job-details btn,
-div.usajobs-table-item-job-details btn-xs {
-	width: 100% !important;
-}
-
+/* Job Marker Cluster Icon */
 div.clusterIcon {
 	display: block;
 	height: 40px !important;
@@ -67,9 +102,19 @@ img.markercluster-icon-img {
 	display: inline;
 	vertical-align: middle;
 }
+/* Job Location Map Popup */
+.loc-popup-title {
+	line-height: 1;
+	margin-bottom: 0px;
+}
+
+ul.loc-popup-job-list {
+	max-height: 200px;
+	overflow-y: auto;
+}
 
 li.loc-popup-job-list-item {
-	margin-bottom: 6px;
+	margin-top: 5px;
 }
 
 a.loc-popup-job-list-item-link {
@@ -78,13 +123,13 @@ a.loc-popup-job-list-item-link {
 	overflow: hidden;
 }
 
-a.loc-popup-vacancy-list-item-link:hover {
+a.loc-popup-job-list-item-link:hover {
 	text-decoration: underline;
 }
 
-span.loc-popup-vacancy-list-item-tag {
+span.loc-popup-job-list-item-tag {
 	display: inline-block;
-	/*width: 41%;*/
+	margin-right: 10px;
 }
 
 div.alaska-view-control,div.map-viewreset-control {
@@ -96,22 +141,7 @@ a.bg-primary-link {
 	font-weight: bold;
 }
 
-.text-shortened {
-	max-height: 3em;
-	overflow: hidden;
-}
-
-.usajobs-vac-table {
-	max-height: 600px;
-	min-height: 300px;
-	overflow-y: auto;
-}
-
-.usajobs-vac-table-list-item {
-	margin-bottom: 1.5em;
-}
-
-.bold {
+.bold, strong {
 	font-weight: 800;
 }
 
