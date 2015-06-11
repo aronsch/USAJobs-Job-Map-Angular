@@ -9,16 +9,14 @@
  */
 
 (function () {
-	/*
-	 * Module Registration
-	 */
+	/* Module Registration  */
 	angular.module('UsaJobsApp.Data', [ 'UsaJobsApp.Settings', 'UsaJobsApp.Filters', 'UsaJobsApp.Utilities',
 			'MomentModule', 'LeafletModule']);
 	
 	/* Service Declarations */
 	angular.module('UsaJobsApp.Data').service('Jobs', Jobs);
 	angular.module('UsaJobsApp.Data').factory('Job', JobFactory);
-	angular.module('UsaJobsApp.Data').directive('jobFilter', jobFilterDirective);
+	angular.module('UsaJobsApp.Data').directive('jobFilter', jobDataFilterDirective);
 	angular.module('UsaJobsApp.Data').directive('vacancyCountDesc', vacancyCountDescDirective);
 	angular.module('UsaJobsApp.Data').directive('jobInfo', jobInfoDirective);
 	angular.module('UsaJobsApp.Data').controller('JobDataFilter', JobDataFilterController);
@@ -83,7 +81,7 @@
 		}
 
 		/**
-		 * @private Process job query response
+		 * @private handle job query response
 		 * @param data
 		 */
 		function queryResolved (data) {
@@ -259,6 +257,8 @@
 			this.daysOpen = moment(now).diff(moment(this.StartDate, dateFm), 'days');
 			this.endDateDescription = $filter('datedescription')(this.EndDate);
 			this.salaryRange = $filter('trailingzeroes')(this.SalaryMin + " to " + this.SalaryMax);
+			this.salaryMaxInt = parseInt(this.SalaryMax.replace('$',''));
+			this.salaryMinInt = parseInt(this.SalaryMin.replace('$',''));
 			this.title = this.JobTitle;
 			this.showDescription = false;
 			this.toggleDescription = function () {
@@ -270,11 +270,11 @@
 				this.concatenatedValues += v + ' | ';
 			}, this);
 		}
+		
+		/* Job Prototype Properties */
 		Job.prototype.visible = true; 
 		
-		/*
-		 * Prototype Function Bindings
-		 */
+		/* Prototype Function Bindings */
 		Job.prototype.setVisibleWithPredicate = setVisibleWithPredicate;
 		Job.prototype.locationArray = locationArray;
 		Job.prototype.hourly = hourly;
@@ -285,9 +285,7 @@
 		Job.prototype.salaryLowest = salaryLowest;
 		Job.prototype.salaryHighest = salaryHighest;
 		
-		/*
-		 * Prototype Function Definitions
-		 */
+		/* Job Prototype Function Definitions */
 		
 		/**
 		 * @public Set visibility property evaluating provided
@@ -401,14 +399,14 @@
 	 * Job Data Filter Directive
 	 * Directive that provides a filter form for filtering USA Jobs search results.
 	 */
-	function jobFilterDirective () {
+	function jobDataFilterDirective () {
 		var tmplt = '';
 		// Text filter
 		tmplt += '<div class="form row job-filter">';
 		tmplt += '<vacancy-count-desc></vacancy-count-desc>';
-		tmplt += '<div class="form-group col-xs-8 col-sm-9"><label for="filters.stringFilter.value" class="sr-only">Filter Vacancies</label>';
+		tmplt += '<div class="form-group col-xs-9 col-sm-9 col-md-10 col-lg-10"><label for="filters.stringFilter.value" class="sr-only">Filter Vacancies</label>';
 		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"><button type="button" class="btn btn-xs btn-danger pull-right" style="position: absolute; right: 22px; top: 6px;" ng-show="filters.filterStatus.active" ng-click="reset()"><i class="fa fa-fw fa-close"></i>Clear Filters</button></div>';
-		tmplt += '<p class="col-xs-4 col-sm-3 text-right"><a class="btn btn-default usajobs-filters-advanced-btn" ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "Show"}} Advanced Filters</a></p>';
+		tmplt += '<p class="col-xs-3 col-sm-3 col-md-2 col-lg-2 text-right"><a class="btn btn-default usajobs-filters-advanced-btn" ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "More"}} Filters</a></p>';
 		// Advanced filters
 		// Grade filter slider
 		tmplt += '<div ng-show="showAdvancedFilters">';
@@ -715,7 +713,9 @@
 		tmplt += '<span ng-show="jobs.resolved">';
 		tmplt += '<strong>{{ jobs.JobData.length }} {{ jobs.orgName }}</strong> job openings are currently listed on ';
 		tmplt += '</span>';
-		tmplt += ' <a ng-href="{{jobs.orgSearchUrl}}" target="_blank">USAJobs.gov</a></p>';
+		tmplt += '<a ng-href="{{jobs.orgSearchUrl}}" target="_blank">USAJobs.gov</a>';
+		tmplt += ' <span class="pull-right btn btn-xs btn-default" ng-click="refresh()" ng-disabled="!jobs.resolved"><i class="fa fa-refresh" ng-class="{ \'fa-spin\': !jobs.resolved }"></i> Refresh</span>'
+		tmplt += '</p>';
 		
 		return {
 			restrict : 'E',
@@ -731,5 +731,10 @@
 	jobInfoController.$inject = [ '$scope', 'Jobs' ];
 	function jobInfoController ($scope, Jobs) {
 		$scope.jobs = Jobs;
+		$scope.refresh = refresh;
+		
+		function refresh () {
+			$scope.jobs.getJobs();
+		}
 	}
 })();
