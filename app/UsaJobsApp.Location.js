@@ -7,7 +7,7 @@
 (function () {
 	angular.module('UsaJobsApp.Location', ['UsaJobsApp.Settings']);
 	
-	/* Service Declaration */
+	/* Service Declarations */
 	angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocationFactory);
 	angular.module('UsaJobsApp.Location').service('geocodeService', geocodeService);
 	angular.module('UsaJobsApp.Location').service('geodataCache', geodataCache);
@@ -39,16 +39,18 @@
 		/* Prototype Functions */
 
 		/**
-		 * Emit notification alerting app that geodata is available and include
-		 * a reference to this object.
+		 * @public Emit notification alerting app that geodata is available and include
+		 * 	   a reference to this object.
 		 */
 		function geodataAvailable () {
 			events.geodata.available(this);
 		}
 		
 		/**
-		 * Broadcast notification to app that geodata could not be found and include
-		 * a reference to this object.
+		 * @public Broadcast notification to app that geodata could not be found and include
+		 * 	   a reference to this object.
+		 *
+		 * @param {String} errorMsg String describing the reason for geocoding failure.
 		 */
 		function hasNoGeodata (errorMsg) {
 			this.noGeodataReason = errorMsg;
@@ -56,8 +58,10 @@
 		}
 		
 		/**
-		 * Set geographic location for this this object and broadcast notification
-		 * of available geodata to app.
+		 * @public Set geographic location for this this object and broadcast notification
+		 * 	   of available geodata to app.
+		 *
+		 * @param {*} geodata Object containing lat and lng data.
 		 */
 		function setGeodata (geodata) {
 			this.geodata = geodata;
@@ -65,8 +69,9 @@
 		}
 		
 		/**
-		 * Indicate whether this location should be visible on a map. Mark the
-		 * location as visible if any of the jobs associated with it are visible.
+		 * @public Indicate whether this location should be visible on a map. Mark the
+		 * 	   location as visible if any of the jobs associated with it are visible.
+		 *
 		 * @returns {Boolean}
 		 */
 		function visible () {
@@ -82,8 +87,9 @@
 		}
 		
 		/**
-		 * Count the number of jobs at this location that are marked as
-		 * visible.
+		 * @public Count the number of jobs at this location that are marked as
+		 * 	   visible.
+		 * 	   
 		 * @returns {Number}
 		 */
 		function countVisible () {
@@ -104,20 +110,30 @@
 	 */
 	geocodeService.$inject = [ '$http', '$timeout', 'geodataCache', 'settings', 'eventService' ];
 	function geocodeService ($http, $timeout, geodataCache, settings, events) {
-
+		
+		var attributionEmitted = false;
+		
 		/* Public Properties */
 		this.queue = []; // geocode processing queue
 		this.isRunning = false; // current processing status
-		this.attributionEmitted = false; // geocode service attribution status
 		
 		/* Public Function Bindings */
 		this.geocode = geocode;
-		this.addToQueue = addToQueue;
-		this.run = run;
-		this.geocodeRun = geocodeRun;
+		
+		/* Private Function Bindings */
+		this._run = run;
+		this._geocodeRun = geocodeRun;
+		this._addToQueue = addToQueue;
 		
 		/* Functions */
 		
+		/**
+		 * @public Set geodata for the provided `JobLocation`. If no cached
+		 * 	   geodata exists, request geocoding using the geocoding service
+		 * 	   specified in the Settings module.
+		 * 	   
+		 * @param {JobLocation} location `JobLocation` to be geocoded
+		 */ 
 		function geocode (location) {
 			var geodata;
 			// check if location data is cached
@@ -126,14 +142,21 @@
 				location.setGeodata(geodata);
 			} else {
 				// otherwise, queue for geocoding
-				this.addToQueue(location);
+				this._addToQueue(location);
 			}
 			
-			if (!this.attributionEmitted) {
+			// If geocoding is requested by the app, emit
+			//  a notification that a data source attribution
+			// needs to be displayed.
+			if (!attributionEmitted) {
 				emitAttribution();
 			}
 		};
 		
+		/**
+		 * @private Emit  a notification that a data source attribution
+			    needs to be displayed.
+		 */
 		function emitAttribution () {
 			var str = '<a href="' + settings.geocoding.infoURL + '" ';
 			str += 'title="Job locations plotted using ' + settings.geocoding.name + ' Geocoding API" ';
@@ -141,16 +164,25 @@
 			str += settings.geocoding.name;
 			str += '</a>';
 			events.location.setAttribution(str);
-			this.attributionEmitted = true;
+			attributionEmitted = true;
 		}
 		
-		function addToQueue (loc) {
-			this.queue.push(loc);
-			this.run();
+		/**
+		 * @private Add a `JobLocation` to the geocode processing queue.
+		 * @param {JobLocation} location
+		 */
+		function addToQueue (location) {
+			this.queue.push(location);
+			this._run();
 		}
 		
-		// Process the geocoding queue. Calls are rate-limited
-		// to comply with API guidelines
+		/**
+		 * @private Begin processing the geocoding queue or advance the currently
+		 * 	    running queue. Calls are rate-limited to comply with API guidelines.
+		 *
+		 * @param {Boolean} advanceQueue Boolean indicating whether the currently running queue
+		 * 		    		 should advance. 
+		 */
 		function run (advanceQueue) {
 			var scope = this;
 			// Dispatch first geocode if queue processing has not started.
@@ -161,8 +193,8 @@
 
 				if (scope.queue.length > 0) {
 					$timeout(function () {
-						scope.geocodeRun();
-						scope.run(true);
+						scope._geocodeRun();
+						scope._run(true);
 					}, settings.geocoding.rateLimit);
 				} else {
 					scope.isRunning = false;
@@ -170,6 +202,10 @@
 			}
 		}
 		
+		/**
+		 * @private Pop a JobLocation off of the geocoding queue and
+		 * 	    dispatch a geocoding request.
+		 */
 		function geocodeRun () {
 			var scope = this, // closure reference for callbacks
 			    location = scope.queue.shift(),
@@ -215,10 +251,9 @@
 	 */
 	geodataCache.$inject = [ '$timeout' ];
 	function geodataCache ($timeout) {
-		
 		var queue = [], // Geodata cache addition queue
-		queueRunning = false, // Status of geodata queue processing
-		geodata; 
+		    queueRunning = false, // Status of geodata queue processing
+		    geodata; 
 		
 		// The geodata cache
 		this.geodata = geodata = (function () {
@@ -237,16 +272,12 @@
 			}
 		})();
 		
-		/*
-		 * Public Function Bindings
-		 */
+		/* Public Function Bindings */
 		this.locNameArr = locNameArr;
 		this.getLocation = getLocation;
 		this.addLocations = addLocations;
 		
-		/*
-		 * Functions
-		 */
+		/* Functions */
 		
 		/**
 		 * @public Returns an array of location names
