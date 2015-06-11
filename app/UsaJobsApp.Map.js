@@ -449,7 +449,7 @@
 					el += '<li class="loc-popup-job-list-item clearfix" ng-repeat="job in location.jobs">';
 					el += '<a class="loc-popup-job-list-item-link" ng-href="{{ job.ApplyOnlineURL }}" target="_blank" title="{{ job.JobTitle }}\r\nClick to go to USAJobs.gov and view this job announcement">{{ job.JobTitle }}</a>';
 					el += '<span class="loc-popup-job-list-item-tag small" title="Grade">{{job.PayPlan + \'&#8209;\' + job.Grade}}</span>';
-					el += '<span class="loc-popup-job-list-item-tag pull-right small" title="Salary">{{job.SalaryMin + \'&#8209;\' + job.SalaryMax | trailingzeroes}}</span>';
+					el += '<span class="loc-popup-job-list-item-tag small" title="Salary">{{job.SalaryMin + \'&#8209;\' + job.SalaryMax | trailingzeroes}}</span>';
 					el += '</li>';
 					el += '</ul><hr>';
 					el += '</div>';
@@ -609,7 +609,7 @@
 				 * @returns {String}
 				 */
 				contentForLoc : function (location) {
-					var jobs, jobsVisible, jobCountStr, len, div, ul, li, a, spanSal, spanGrd;
+					var jobs, jobsVisible, jobCountStr, len, div, title, jobCount, ul, li, a, spanSal, spanGrd;
 					
 					jobs = location.jobs;
 					jobsVisible = location.countVisible();
@@ -621,10 +621,13 @@
 						jobCountStr += ', ' + jobsVisible + ' matching filters';
 					}
 					div = angular.element("<div class='loc-popup' />");
-					div.append(angular.element('<h5 class="loc-popup-title bold">').html(
-							location.name + '<br>' + '<span class="small text-muted">' + jobCountStr + '</span>'));
-					
+					// Popup Title
+					title = angular.element("<h5 class='loc-popup-title bold'/>").text(location.name);
+					// Location Job Count
+					jobCount = angular.element("<span class='loc-popup-job-count small'/>").text(jobCountStr);
+					// Job List Element
 					ul = angular.element('<ul class="loc-popup-job-list list-unstyled" />');
+					// Add jobs
 					angular.forEach(jobs, function (job) {
 						if (!job.visible) return;
 						li = angular.element('<li class="loc-popup-job-list-item clearfix"></li>');
@@ -633,27 +636,25 @@
 								.attr('href', job.ApplyOnlineURL)
 								.attr('target', '_blank')
 								.html(job.JobTitle.replace(/-/g, '&#8209;'))
-								.attr(
-										'title',
-										job.JobTitle
-												+ '\r\nClick to go to USAJobs.gov and view this job announcement');
+								.attr('title',job.JobTitle +
+								      '\r\nClick to go to USAJobs.gov and view this job announcement');
 						spanGrd = angular.element(
 								'<span class="loc-popup-job-list-item-tag small"></span>').html(
 								job.PayPlan + '&#8209;' + job.Grade).attr('title', 'Grade');
 						spanSal = angular.element(
-								'<span class="loc-popup-job-list-item-tag pull-right small"></span>')
-								.html(
-										$filter('trailingzeroes')(
-												job.SalaryMin + '&#8209;' + job.SalaryMax)).attr(
+								'<span class="loc-popup-job-list-item-tag small"></span>')
+								.html($filter('trailingzeroes')(
+										job.SalaryMin + '&#8209;' + job.SalaryMax)).attr(
 										'title', 'Salary');
-						
 						li.append(a);
 						li.append(spanGrd);
 						li.append(spanSal);
 						ul.append(li);
 					}, this);
 					
-					div.append(ul);
+					div.append(title)
+					   .append(jobCount)
+					   .append(ul);
 					
 					return div.html();
 				}
