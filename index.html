@@ -92,7 +92,7 @@
                 // Trigger on selection change
                 $scope.$watch('selectedOrg', onOrgSelected);
 
-                $http.get('FederalAgencySubElement.xml')
+                $http.get('FederalAgencySubElements.xml')
                         .success(agencyXmlDocResolved);
 
                 /**
