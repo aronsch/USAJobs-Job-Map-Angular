@@ -121,7 +121,7 @@
 		
 		/* Job Info Element */
 		tmplt += '<li class="usajobs-jobs-table-list-item container-fluid" ng-repeat="job in jobs.JobData | orderBy:predicate:reverse" ng-show="job.visible">';
-		tmplt += '<h5 class="usajobs-jobs-table-list-item-title"><a ng-href="{{job.ApplyOnlineURL}}" target="_blank" title="Click to open this job announcement on USAJobs.gov">{{ job.title }}</a></h5>';
+		tmplt += '<h5 class="usajobs-jobs-table-list-item-title"><a ng-href="{{job.ApplyOnlineURL}}" target="_blank" title="Click to open this job announcement on USAJobs.gov">{{ job.title }}<i class="fa fa-fw fa-external-link"></i></a></h5>';
 		tmplt += '<div class="row usajobs-table-item-job-details">';
 		// Locations
 		tmplt += '<dl class="col-xs-2 col-sm-2 col-md-2 col-lg-2 small"><dt>Location</dt><dd ng-repeat="loc in job.locationArray() track by $index">{{ loc }}</dd></dl>';
