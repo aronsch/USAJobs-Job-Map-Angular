@@ -7,6 +7,17 @@ a {
 	cursor: pointer;
 }
 
+a i.fa-external-link
+{
+	visibility: hidden;
+}
+
+a:hover i.fa-external-link,
+.alert a i.fa-external-link
+{
+	visibility: visible;
+}
+
 /**
  * Job Filter
  */
@@ -21,6 +32,7 @@ a {
 
 .usajobs-table-column-titles dl {
 	margin-bottom: 10px;
+	padding-right: 0px !important;
 }
 
 /* Reduce bottom margin on job table job details*/
@@ -37,6 +49,10 @@ div.usajobs-table-item-job-details btn-xs {
 /**
  * Map Elements
  */
+
+job-map {
+	border: 1px solid #e3e3e3;
+}
 
 /* Geocoding status indicator */
 div.geodata-status {
@@ -72,6 +88,22 @@ div.loc-no-geodata-list-container {
 	overflow-y: auto;
 }
 
+/* Controls */
+.usajobs-map-reset-icon,
+.usajobs-map-showall-icon
+{
+	color: #0078A8;
+	background-color: #FFF;
+	padding: 5px;
+	border-radius: 4px;
+	box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+	cursor: pointer;
+}
+
+.usajobs-map-reset-icon:hover,
+.usajobs-map-showall-icon:hover {
+	background-color: #f4f4f4;
+}
 /* Job Marker Cluster Icon */
 div.clusterIcon {
 	display: block;
