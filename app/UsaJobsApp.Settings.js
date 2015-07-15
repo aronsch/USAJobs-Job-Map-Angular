@@ -23,8 +23,9 @@
 				zoomControl : true, // display map zoom control
 				scrollWheelZoom : true, // allowing scrollwheel zoom
 				maxZoom : 9, // max zoom limit
-				minZoom : 2, // min zoom limit
+				minZoom : 0, // min zoom limit
 				markerClustering : true, // joblocation marker clustering (recommended)
+				jobCountOverlay: true // show overlay indicating job counts at locations
 			},
 			assets : { // map asset settings
 				jobLocation : {
