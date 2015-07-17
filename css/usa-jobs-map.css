@@ -26,6 +26,24 @@ a:hover i.fa-external-link,
 	width: 100%;
 }
 
+.disabled .ngrs-join {
+	background-color: #C9C9C9 !important;
+	background-image: -webkit-linear-gradient(#CCCCCC, #C9C9C9) !important;
+	background-image: -moz-linear-gradient(#CCCCCC, #C9C9C9) !important;
+	background-image: -o-linear-gradient(#CCCCCC, #C9C9C9) !important;
+	background-image: linear-gradient(#CCCCCC, #C9C9C9) !important;
+}
+.usajobs-grade-filter .ngrs-range-slider {
+	margin-bottom: 0px !important;
+}
+.ngrs-range-slider {
+	margin-top: 0px !important;
+	margin-bottom: 0px;
+}
+.ngrs-value {
+	padding-top: 2px !important;
+}
+
 /**
  * Job Table
  */
@@ -46,12 +64,17 @@ div.usajobs-table-item-job-details btn-xs {
 	width: 100% !important;
 }
 
+li.usajobs-jobs-table-list-item {
+	padding-bottom: 4px;
+}
+
 /**
  * Map Elements
  */
 
 job-map {
 	border: 1px solid #e3e3e3;
+	clear: both;
 }
 
 /* Geocoding status indicator */
