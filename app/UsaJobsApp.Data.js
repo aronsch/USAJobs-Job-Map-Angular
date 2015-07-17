@@ -563,12 +563,12 @@
 		tmplt += '<div range-slider show-values="true" filter="currency" id="salary-slider" min="filters.salaryFilter.lowest" max="filters.salaryFilter.highest" step="10000" model-min="filters.salaryFilter.min" model-max="filters.salaryFilter.max" ng-class="{ disabled : !jobs.resolved }"></div>';
 		tmplt += '</div>';
 		
-		tmplt += '<div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 text-right"><dt class="hidden-xs hidden-sm">&nbsp;</dt><button class="btn btn-default btn-sm usajobs-filters-advanced-btn " ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "More"}} Filters</button></div>';
+		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-2 col-lg-2 text-right"><label class="hidden-xs hidden-sm">&nbsp;</label><button class="btn btn-default btn-sm usajobs-filters-advanced-btn " ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "More"}} Filters</button></div>';
 		
 		// Advanced filters
 		tmplt += '<div ng-show="showAdvancedFilters">';
 		// Grade filter slider
-		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-3" ng-hide="filters.gradeFilter.isDisabled"><label for="grade-slider">Grade Filter</label>';
+		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-3 usajobs-grade-filter" ng-hide="filters.gradeFilter.isDisabled"><label for="grade-slider">Grade Filter</label>';
 		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.gradeFilter.isActive()" ng-click="filters.gradeFilter.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<div range-slider show-values="true" filter="grade" id="grade-slider" min="filters.gradeFilter.lowest" max="filters.gradeFilter.highest" model-min="filters.gradeFilter.min" model-max="filters.gradeFilter.max" ng-class="{ disabled : !jobs.resolved }"></div></div>';
 		// Text filter
@@ -576,7 +576,7 @@
 		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.stringFilter.isActive()" ng-click="filters.stringFilter.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"></div>';
 		// State dropdown
-		tmplt += '<div class="form-group col-xs-6 col-sm-3"><label for="state-filter">State or Country </label>';
+		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="state-filter">State or Country </label>';
 		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.state.isActive()" ng-click="filters.state.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<select class="form-control" id="state-filter" ng-model="filters.state.value" ng-change="filter()"  ng-options="state.name for state in jobs.JobData.states"><option value=""></option></select>';
 		tmplt += '</div>';
