@@ -83,7 +83,7 @@
 		tmplt += '<dl class="col-xs-1 col-sm-1 col-md-1 col-lg-1 small"><dt><a title="Click to sort by Job Title" href="" ng-click="setPredicate(\'JobTitle\')">Title'
 				+ sortCaret('JobTitle', alphaIcons) + '</a></dt></dl>';
 		// Locations
-		tmplt += '<dl class="col-xs-2 col-sm-2 col-md-1 col-lg-1 small"><dt><a title="Click to sort by Location" href="" ng-click="setPredicate(\'Locations\')">Loc'
+		tmplt += '<dl class="col-xs-2 col-sm-2 col-md-1 col-lg-1 small"><dt><a title="Click to sort by Location" href="" ng-click="setPredicate(\'Locations\')">Location'
 				+ sortCaret('Locations', alphaIcons) + '</a></dt></dl>';
 		// Salary
 		tmplt += '<dl class="col-xs-3 col-sm-3 col-md-2 col-lg-2 small"><dt><a title="Click to sort by Salary" href="" ng-click="setSalaryPredicate()">Salary'
@@ -137,7 +137,7 @@
 		// Job Announcement Number  
 		tmplt += '<dl class="hidden-xs hidden-sm col-md-2 col-lg-2 small"><dt><abbr title="Vacancy Announcment Number">Vac</abbr></dt><dd title="{{job.AnnouncementNumber}}">{{ job.AnnouncementNumber }}</dd></dl>';
 		// Job Summary Toggle
-		tmplt += '<div class="col-xs-3 col-sm-3 col-md-2 col-lg-2"><a class="hidden-print small" ng-click="job.toggleDescription()"><i class="fa fa-fw" ng-class="{ \'fa-plus-square-o\': !job.showDescription, \'fa-minus-square-o\': job.showDescription }"></i>Job Summary</a></div>'
+		tmplt += '<div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 clearfix"><a class="hidden-print small text-muted" ng-click="job.toggleDescription()"><i class="fa fa-fw" ng-class="{ \'fa-plus-square-o\': !job.showDescription, \'fa-minus-square-o\': job.showDescription }"></i>Job Summary</a></div>'
 		tmplt += '<dl class="col-xs-9 col-sm-9 col-md-10 col-lg-10 small" ng-show="job.showDescription"><dt class="sr-only visible-print-block">Job Summary</dt><dd><strong class="visible-xs-inline visible-sm-inline">Vacancy Number: {{job.AnnouncementNumber}}<br /></strong> {{ job.JobSummary }}</dd></dl>';
 		tmplt += '</div>';
 		tmplt += '</li></ul>';
