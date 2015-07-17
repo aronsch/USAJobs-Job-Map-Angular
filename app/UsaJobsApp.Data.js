@@ -559,7 +559,7 @@
 		
 		// Job salary slider
 		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-10 col-lg-10"><label for="salary-slider">Salary Filter</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.salaryFilter.isActive()" ng-click="filters.salaryFilter.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
+		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.salaryFilter.isActive()" ng-click="filters.salaryFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<div range-slider show-values="true" filter="currency" id="salary-slider" min="filters.salaryFilter.lowest" max="filters.salaryFilter.highest" step="10000" model-min="filters.salaryFilter.min" model-max="filters.salaryFilter.max" ng-class="{ disabled : !jobs.resolved }"></div>';
 		tmplt += '</div>';
 		
@@ -569,20 +569,20 @@
 		tmplt += '<div ng-show="showAdvancedFilters">';
 		// Grade filter slider
 		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-3 usajobs-grade-filter" ng-hide="filters.gradeFilter.isDisabled"><label for="grade-slider">Grade Filter</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.gradeFilter.isActive()" ng-click="filters.gradeFilter.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
+		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.gradeFilter.isActive()" ng-click="filters.gradeFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<div range-slider show-values="true" filter="grade" id="grade-slider" min="filters.gradeFilter.lowest" max="filters.gradeFilter.highest" model-min="filters.gradeFilter.min" model-max="filters.gradeFilter.max" ng-class="{ disabled : !jobs.resolved }"></div></div>';
 		// Text filter
 		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="filters.stringFilter.value" class="">Text Filter</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.stringFilter.isActive()" ng-click="filters.stringFilter.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
+		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.stringFilter.isActive()" ng-click="filters.stringFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"></div>';
 		// State dropdown
 		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="state-filter">State or Country </label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.state.isActive()" ng-click="filters.state.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
+		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.state.isActive()" ng-click="filters.state.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<select class="form-control" id="state-filter" ng-model="filters.state.value" ng-change="filter()"  ng-options="state.name for state in jobs.JobData.states"><option value=""></option></select>';
 		tmplt += '</div>';
 		// Pay plan radio buttons
 		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="pay-plan-filter">Pay Basis &nbsp;</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.payFilter.isActive()" ng-click="filters.payFilter.reset()"><i class="fa fa-fw fa-close"></i>Clear</button>';
+		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.payFilter.isActive()" ng-click="filters.payFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
 		tmplt += '<div id="pay-plan-filter" class="input-group">';
 		tmplt += '<label class="radio-inline"><input id="allpb-radio" name="pay-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.all" ng-disabled="!jobs.resolved"> Any&nbsp;</label>';
 		tmplt += '<label class="radio-inline"><input id="salaried-radio" name="pay-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.salaried" ng-disabled="!jobs.resolved"> Salaried&nbsp;</label>';
@@ -632,8 +632,9 @@
 					return job.concatenatedValues.indexOf(this.value) > -1;
 				}
 			},
-			reset: function () {
+			reset: function (triggerUpdate) {
 				this.value = '';
+				if (triggerUpdate) $scope.filter();
 			},
 			isActive: function () {
 				return this.value.length > 0;
@@ -654,7 +655,7 @@
 					return job.gradeInRange(this.min, this.max);
 				}
 			},
-			reset: function () {
+			reset: function (triggerUpdate) {
 				this.min = this.lowest;
 				this.max = this.highest;
 			},
@@ -672,9 +673,10 @@
 			predicate: function (job) {
 				return job.salaryInRange(this.min, this.max);
 			},
-			reset: function () {
+			reset: function (triggerUpdate) {
 				this.min = this.lowest;
 				this.max = this.highest;
+				if (triggerUpdate) $scope.filter();
 			},
 			isActive: function () {
 				return this.min !== this.lowest || this.max !== this.highest;
@@ -698,8 +700,9 @@
 					return true;
 				}
 			},
-			reset: function () {
+			reset: function (triggerUpdate) {
 				this.selection = this.all;
+				if (triggerUpdate) $scope.filter();
 			},
 			isActive: function () {
 				return !angular.equals(this.selection, this.all);
@@ -718,8 +721,9 @@
 					return false;
 				}
 			},
-			reset: function () {
+			reset: function (triggerUpdate) {
 				this.value = null;
+				if (triggerUpdate) $scope.filter();
 			},
 			isActive: function () {
 				return this.value !== null;
