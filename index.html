@@ -25,10 +25,10 @@
             margin-bottom: 5px;
         }
     </style>
-    <title>USAJobs Job Listings</title>
+    <title>USAJobs Job Map App</title>
 </head>
 <body class="container">
-
+	<h1>[USAJobs](http://www.usajobs.gov) Job Map App</h1>
     <!-- USAJobsApp Application Element-->
     <div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
     <org-browser></org-browser>
@@ -110,7 +110,6 @@
                 }
 
                 function onOrgSelected(org) {
-		    
                     if (angular.isDefined(org.Code) && angular.isDefined(org.Value)) {
 			Events.filters.clear(); // clear current filter settings
                         $scope.jobs.orgCode = org.Code;
