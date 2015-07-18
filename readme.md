@@ -2,13 +2,15 @@
 
 An Angular app for browsing jobs listed on [USAJobs.gov](https://www.usajobs.gov).
 
+[Go here for a demo](http://aronsch.github.io/USAJobs-Job-Map-Angular/) using all components.
+
 ## Usage
 
 The app has four modular UI components:
-- `<job-map></job-map>` Displays the jobs on a [Leaflet.js](http://leafletjs.com) map.
-- `<job-filter></job-filter>` Displays a form for filtering job results.
-- `<job-table></job-table>` Displays a sortable table showing all job results.
-- `<job-info></job-info>` Displays overall app information - job loading status, number of jobs found, and selected Federal agency.
+- `<job-map></job-map>` to display the jobs on a [Leaflet.js](http://leafletjs.com) map.
+- `<job-filter></job-filter>` to display a form for filtering job results.
+- `<job-table></job-table>` to display a sortable table showing all job results.
+- `<job-info></job-info>` to display overall app information - job loading status, number of jobs found, and selected Federal agency.
 
 To start the app, define the following attributes on the app element:
 - `org-code` The [Federal agency sub-element org code](https://schemas.usajobs.gov/Enumerations/AgencySubElement.xml).
