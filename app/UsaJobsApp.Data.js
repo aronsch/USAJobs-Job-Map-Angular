@@ -327,6 +327,11 @@
 			this.salaryMinInt = parseInt(this.SalaryMin.replace('$',''));
 			this.title = this.JobTitle;
 			this.locationArray = this.Locations.split(/;/g);
+			this.locationArrayCompact = [];
+			
+			angular.forEach(this.locationArray, function (item) {
+				this.locationArrayCompact.push($filter('stateAbbreviation')(item));
+			}, this);
 			
 			// Concatenate all values as strings for search term matching.
 			this.concatenatedValues = '';
@@ -563,7 +568,7 @@
 		tmplt += '<div range-slider show-values="true" filter="currency" id="salary-slider" min="filters.salaryFilter.lowest" max="filters.salaryFilter.highest" step="10000" model-min="filters.salaryFilter.min" model-max="filters.salaryFilter.max" ng-class="{ disabled : !jobs.resolved }"></div>';
 		tmplt += '</div>';
 		
-		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-2 col-lg-2 text-right"><label class="hidden-xs hidden-sm">&nbsp;</label><button class="btn btn-default btn-sm usajobs-filters-advanced-btn " ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "More"}} Filters</button></div>';
+		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-2 col-lg-2 text-right"><label class="hidden-xs hidden-sm">&nbsp;</label><button class="btn btn-default btn-xs usajobs-filters-advanced-btn " ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "More"}} Filters</button></div>';
 		
 		// Advanced filters
 		tmplt += '<div ng-show="showAdvancedFilters">';
@@ -679,7 +684,7 @@
 				if (triggerUpdate) $scope.filter();
 			},
 			isActive: function () {
-				return this.min !== this.lowest || this.max !== this.highest;
+				return this.min >= this.lowest + 1 || this.max !== this.highest;
 			}
 		};
 		
@@ -746,18 +751,20 @@
 		/**
 		 * @public
 		 * Update filter ranges based on current job results.
-		 * This is needed to update the max and min ranges in the filtering UI after
-		 * a set of job data has been returned from USA jobs.
 		 */
 		function update () {
 			// don't attempt to update filter settings if there is no job
 			// data
 			if ($scope.jobs.JobData.length === 0) return;
 			
-			var maxGrade = $scope.jobs.getMaxGrade(), minGrade = $scope.jobs.getMinGrade(), maxSalary = $scope.jobs
-					.getMaxSalary(), minSalary = $scope.jobs.getMinSalary();
+			var maxGrade = $scope.jobs.getMaxGrade(),
+			    minGrade = $scope.jobs.getMinGrade(),
+			    // set max salary in range to near higher integer
+			    maxSalary = Math.ceil($scope.jobs.getMaxSalary()),
+			    // set min salary in range to near lower integer
+			    minSalary = Math.floor($scope.jobs.getMinSalary());
 			
-			
+			// Set salary slider ranges
 			$scope.filters.salaryFilter.highest = maxSalary;
 			$scope.filters.salaryFilter.max = maxSalary;
 			$scope.filters.salaryFilter.lowest = minSalary;
@@ -915,7 +922,7 @@
 		var tmplt = '';
 		tmplt += '<p class=\"usajobs-vac-count text-center\" ng-class=\"{\'bg-clear\': filterStatus.active, \'text-primary\': filterStatus.active, \'bg-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active, \'text-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active}\">';
 		tmplt += '<span ng-show=\"filterStatus.active\"><strong>{{ jobs.JobData.visibleCount }}</strong> vacanc{{ jobs.JobData.visibleCount == 1 ? \"y\" : \"ies\"}} match{{ jobs.JobData.visibleCount == 1 ? \"es\" : \"\"}} your filter criteria</strong></span>';
-		tmplt += '<span ng-hide=\"filterStatus.active\">&nbsp;</span>';
+		tmplt += '<span ng-hide=\"filterStatus.active\">&nbsp;<i class="fa fa-fw fa-search" style="color: #ccc;"></i>&nbsp;</span>';
 		tmplt += '</p>';
 		
 		return {
