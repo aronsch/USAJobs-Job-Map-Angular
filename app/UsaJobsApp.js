@@ -1,22 +1,22 @@
 /**
- * @module UsaJobsApp App Module - Main UsaJobsMap app module
- * - Main app controller
- * - Org Code Directive to bind controller
- * - Centralized event emission and subscription service
- */
+* @module UsaJobsApp Main App Module
+* - Main app controller
+* - Org Code Directive to bind controller
+* - Centralized event emission and subscription service
+*/
 (function () {
 	angular.module('UsaJobsApp', [ 'UsaJobsApp.Data', 'UsaJobsApp.Filters', 'UsaJobsApp.Map', 'UsaJobsApp.JobTable',
 			'UsaJobsApp.Location', 'UsaJobsApp.Utilities', 'MomentModule', 'LeafletModule',
 			'ui-rangeSlider' ]);
 	
-	/* Service Declarations */
+	// App Module Service Declarations
 	angular.module('UsaJobsApp').controller('UsaJobsAppController', AppController);
 	angular.module('UsaJobsApp').directive('orgCode', orgCodeDirective);
 	angular.module('UsaJobsApp').service('eventService', eventService);
 	
 	
-	/* Service Functions */
-
+	// App Service Functions
+	
 	/**
 	 * UsaJobsApp App Controller
 	 */
@@ -30,9 +30,6 @@
 		$scope.jobs.orgName = $scope.orgName;
 		$scope.orgSearchUrl = settings.usaJobs.searchBaseUrl + $scope.orgId;
 		$scope.jobs.orgSearchUrl = $scope.orgSearchUrl;
-		
-		// Public Functions
-		
 		
 		// Get jobs
 		$scope.jobs.getJobs();
@@ -60,7 +57,8 @@
 	}
 	
 	/**
-	 * OrgId Directive detects the 'org-code' attribute and attaches the app
+	 * OrgId Directive
+	 * Detects 'org-code' attribute and attaches the app
 	 * controller.
 	 */
 	function orgCodeDirective () {
@@ -170,11 +168,12 @@
 			on(names.filters.clear, handlerFn);
 		};
 		
-		// broadcast and registration functions
+		// broadcast an event on rootScope
 		function broadcast (eventName, obj) {
 			$rootScope.$broadcast(eventName, obj);
 		}
 		
+		// listen for an event on rootScope
 		function on (eventName, handlerFn) {
 			$rootScope.$on(eventName, handlerFn);
 		}
