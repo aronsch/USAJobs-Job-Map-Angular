@@ -1,10 +1,18 @@
 /**
- * @module UsaJobsMap Settings Module
- */
+* @module UsaJobsMap App Settings Module
+*/
 (function () {
+	// Settings Module Declarations
 	angular.module('UsaJobsApp.Settings', []);
-	angular.module('UsaJobsApp.Settings').value('settings', {
-			usaJobs : { // UsaJobs.gov Settings
+	angular.module('UsaJobsApp.Settings').value('settings', appSettings());
+	
+	/**
+	 * Return App Settings object.
+	 */
+	function appSettings () {
+		return {
+			// UsaJobs.gov Data API settings
+			usaJobs : { 
 				// base of job query URL
 				baseUrl : 'https://data.usajobs.gov/api/jobs',
 				// job query org attribute
@@ -16,34 +24,41 @@
 				// date format for date parsing
 				dateFormat : 'M/D/YYYY',
 			},
-			map : { // Leaflet.js map settings
+			
+			// Leaflet.js map settings
+			map : {
 				center : [ 40.8282, -98.5795 ], // map center - CONUS
 				zoom : 4, // default map starting zoom
 				attributionControl : true, // display map data attribution
 				zoomControl : true, // display map zoom control
 				scrollWheelZoom : true, // allowing scrollwheel zoom
-				maxZoom : 9, // max zoom limit
-				minZoom : 0, // min zoom limit
+				maxZoom : 11, // max zoom limit
+				minZoom : 1, // min zoom limit
 				markerClustering : true, // joblocation marker clustering (recommended)
 				jobCountOverlay: true // show overlay indicating job counts at locations
 			},
-			assets : { // map asset settings
+			
+			// Map marker settings
+			assets : { 
 				jobLocation : {
 					iconUrl : 'http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon.png',
 					iconRetinaUrl : 'http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon-2x.png',
-					iconShadowUrl : 'http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-shadow.png',
+					shadowUrl : 'http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-shadow.png',
 					miniIconUrl : 'http://cdn.leafletjs.com/leaflet-0.7.3/images/marker-icon.png',
 					iconSize : [ 25, 41 ],
 					iconAnchor : [ 13, 41 ],
 					popupAnchor : [ 1, -34 ],
 					shadowSize : [ 41, 41 ],
-					className : 'usajobs-job-location-icon'
+					className : 'usajobs-job-location-icon',
+					riseOnHover: true
 				},
 			},
-			geocoding : { // Geocoding Service Information
-				// geocoding service name
+			
+			// Geocoding API service setting
+			geocoding : {
+				// geocoding service name for attribution
 				name : 'Google',
-				// geocoding service info page for attribution link
+				// geocoding service info page URL for attribution link
 				infoURL : 'https://developers.google.com/maps/documentation/geocoding/',
 				// delay in ms between geocoding calls
 				rateLimit : 200,
@@ -61,11 +76,14 @@
 						response = response.results[0].geometry.location;
 						return {
 							lat : response.lat,
-							lon : response.lng
+							lon : response.lng,
+							source : this.name,
+							date : new Date()
 						};
 					}
 				}
 			},
 			
-		});
+		}
+	}
 })();
