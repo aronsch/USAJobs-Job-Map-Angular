@@ -32,5 +32,5 @@ To start the app, define the following attributes on the app element:
 
 ## TODO
 
-### Geodata
-- Implement support for external geodata file
+- Port to new USAJobs Data API.
+- Implement support for external geodata file.
