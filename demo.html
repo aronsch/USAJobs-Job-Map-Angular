@@ -23,7 +23,13 @@
             width: auto;
             display: block;
             margin-bottom: 5px;
+	    border-radius: 4px;
         }
+	
+	.usajobs-map-filter-wrapper {
+	    background-color: #F9F9F9;
+	    border-radius: 4px;
+	}
     </style>
     <title>USAJobs Job Listings</title>
 </head>
@@ -32,8 +38,10 @@
     <!-- USAJobsApp Application Element-->
     <div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
 	<job-info></job-info>
-	<job-map></job-map>
-	<job-filter></job-filter>
+	<div class="usajobs-map-filter-wrapper">
+	    <job-map></job-map>
+	    <job-filter></job-filter>
+	</div>
 	<job-table></job-table>
     </div>
 
@@ -46,12 +54,13 @@
 
     <!-- UsaJobsApp JS -->
     <script type="text/javascript" src="app/UsaJobsApp.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Filters.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Templates.js"></script>
     <script type="text/javascript" src="app/UsaJobsApp.Data.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Filters.js"></script>
     <script type="text/javascript" src="app/UsaJobsApp.Location.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
     <script type="text/javascript" src="app/UsaJobsApp.Table.js"></script>
+    <script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
 </body>
 </html>
