@@ -1,25 +1,25 @@
 /**
- * @name UsaJobsApp.Map
- * @module UsaJobsApp Leaflet Map Module - This module receives JobLocation
- *         objects created by the UsaJobsApp.Location module and plots them on a
- *         Leaflet.js map once they have been geocoded.
- *         - Job Map Directive that sets up Leaflet.js map element
- *         - Job Map controller to handle marker management and marker visibility
- *         - Alaska view map control - TODO: make this an external module
- *         - Map reset view map control - TODO: make this a button that doesn't require an asset
- *         - Map marker defaults provider
- */
+* @module UsaJobsApp Leaflet Map Module - This module receives JobLocation
+*         objects created by the UsaJobsApp.Location module and plots them on a
+*         Leaflet.js map once they have been geocoded.
+*         - Job Map Directive that sets up Leaflet.js map element
+*         - Job Map controller to handle marker management and marker visibility
+*         - Map Control - Map view reset control generator
+*         - Map Control - Show all markers control generator
+*         - Map marker defaults provider
+*/
 (function () {
 	angular.module('UsaJobsApp.Map', [ 'LeafletModule', 'UsaJobsApp.Settings', 'UsaJobsApp.Utilities',
-			'UsaJobsApp.Location', 'UsaJobsApp.Data' ]);
-	
-	/* Service Declarations */
-	angular.module('UsaJobsApp.Map').directive('jobMap', jobMapDirective);
+		'UsaJobsApp.Location', 'UsaJobsApp.Data' ]);
+
+	// Map Module Service Declarations
 	angular.module('UsaJobsApp.Map').controller('JobMapController', JobMapController);
+	angular.module('UsaJobsApp.Map').directive('jobMap', jobMapDirective);
 	angular.module('UsaJobsApp.Map').factory('mapResetControl', mapResetControl);
 	angular.module('UsaJobsApp.Map').factory('mapShowAllControl', mapShowAllControl);
 	angular.module('UsaJobsApp.Map').service('markers', markers);
-	/* Service Functions */
+
+	// Map Module Functions
 
 	/**
 	 * Job Map Controller
@@ -78,6 +78,9 @@
 			updateMarkerForLoc(L);
 			$scope.geodataStatus.addResolved();
 			$scope.map.allMarkersBounds.extend([L.geodata.lat, L.geodata.lon]);
+			
+			// TODO: If the user hasn't touched the map, Show all markers
+			// by extending map view bounds intelligently as markers are added.
 		}
 		
 		/**
@@ -94,7 +97,9 @@
 		}
 		
 		function addGeocodeAttribution (e, str) {
-			$scope.map.attributionControl.addAttribution(str);
+			if (angular.isDefined($scope.map.attributionControl)) {
+				$scope.map.attributionControl.addAttribution(str);
+			}
 		}
 		
 		/**
@@ -135,6 +140,7 @@
 		 * or removed from the map as a batch.
 		 */
 		function updateVisible () {
+			
 			var show = [], hide = [];
 			
 			angular.forEach($scope.locations, function (location) {
@@ -345,6 +351,7 @@
 						this.jobCount = c;
 					};
 					
+					// TODO: implement as template in templateCache
 					el += '<div class="loc-no-geodata-list" ng-show="locationsNoGeodata.length > 0">';
 					el += '<h5>{{ locationsNoGeodata.jobCount }} Job<span ng-hide="locationsNoGeodata.jobCount === 1">s</span> Not on Map <small><a ng-click="locationsNoGeodata.maximized = !locationsNoGeodata.maximized">{{locationsNoGeodata.maximized ? \'Hide\' : \'Show\' }}</a></small></h5>';
 					el += '<div ng-show="locationsNoGeodata.maximized" class="loc-no-geodata-list-container">';
@@ -353,7 +360,7 @@
 					el += '<p class="alert alert-warning small">{{ location.noGeodataReason }}</p>';
 					el += '<ul class="loc-popup-job-list list-unstyled">';
 					el += '<li class="loc-popup-job-list-item clearfix" ng-repeat="job in location.jobs">';
-					el += '<a class="loc-popup-job-list-item-link" ng-href="{{ job.ApplyOnlineURL }}" target="_blank" title="{{ job.JobTitle }}\r\nClick to go to USAJobs.gov and view this job announcement">{{ job.JobTitle }}</a>';
+					el += '<a class="loc-popup-job-list-item-link" ng-href="{{ job.ApplyOnlineURL }}" target="_blank" title="{{ job.JobTitle }}\r\nView this job announcement on USAJobs.gov">{{ job.JobTitle }}</a>';
 					el += '<span class="loc-popup-job-list-item-tag small" title="Grade">{{job.PayPlan + \'&#8209;\' + job.Grade}}</span>';
 					el += '<span class="loc-popup-job-list-item-tag small" title="Salary">{{job.SalaryMin + \'&#8209;\' + job.SalaryMax | trailingzeroes}}</span>';
 					el += '</li>';
@@ -372,7 +379,7 @@
 					map = leaflet.map(element[0], {
 						center : scope.mapOptions.center,
 						zoom : scope.mapOptions.zoom,
-						attributionControl : scope.mapOptions.attributionControl,
+						attributionControl : false,
 						zoomControl : false,
 						scrollWheelZoom : scope.mapOptions.scrollWheelZoom,
 						worldCopyJump : true
@@ -381,6 +388,8 @@
 					map.startBounds = map.getBounds();
 					// bounds containing all markers - modified on geoDataAvailable event
 					map.allMarkersBounds = map.getBounds();
+					// changed to true after user interacts with map
+					map.userHasTouchedMap = false;
 					
 					// map tile layer
 					tileLayer = leaflet.tileLayer(
@@ -452,6 +461,16 @@
 					
 					// Add Event Listeners
 					map.on('zoomstart', handleZoomStart);
+					map.on('mousemove', handleInteractionStart);
+					map.on('mousedown', handleInteractionStart);
+					
+					/**
+					 * @private
+					 * Handler triggered on map `movestart` event
+					 */
+					function handleInteractionStart () {
+						map.userHasTouchedMap = true;
+					}
 					
 					/**
 					 * @private
@@ -588,18 +607,18 @@
 						}
 						
 						// Map `zoomend` event listener
-						map.on('zoomend', function (e) {
+						map.on('zoomend', onZoomEnd);
+						
+						function onZoomEnd (e) {
 							var zoom = scope.map.getZoom();
 							if (zoom >= 4) {
 								// adjust radius and opacity based on zoom
 								angular.forEach(scope.jobCountLayer._layers,
 									function (c) {
 										// scale jobcount overlays up as we zoom in
-										c.setRadius(c.startRadius
-												* (zoom - scope.mapOptions.zoom + 1));
+										c.setRadius(c.startRadius * (zoom - scope.mapOptions.zoom));
 										// reduce opacity as we zoom in so map detail is visible
-										c.options.fillOpacity = c.startOpacity
-												- ((c.startOpacity / (scope.mapOptions.maxZoom - scope.mapOptions.minZoom)) * (zoom - scope.mapOptions.zoom));
+										c.options.fillOpacity = c.startOpacity - ((c.startOpacity / (scope.mapOptions.maxZoom - scope.mapOptions.minZoom)) * (zoom - scope.mapOptions.zoom));
 										c.options.weight = countCircleWeight(c);
 										// trigger overlay update
 										c._updateStyle();
@@ -618,7 +637,7 @@
 								// increase circle stroke weight when zooming in past default zoom
 								return c.startWeight * (zoom > scope.mapOptions.zoom ? (zoom - scope.mapOptions.zoom + 1) : 1);
 							}
-						});
+						}
 					}
 				       
 					/**
@@ -708,7 +727,7 @@
 				wrapper = angular.element('<div/>')
 						.addClass('markercluster-icon-img-wrapper')
 						.css('margin-top', this.contentTopMargin(len, rowItems))
-						.attr('title', 'Click to zoom to these locations: \r\n\r\n'
+						.attr('title', 'Zoom to these locations: \r\n\r\n'
 						     + this.locationsInCluster(cluster).join('\r\n'));
 				
 				for (i = 0; i < len; i++) {
@@ -773,8 +792,9 @@
 			
 			thePopup = leaflet.popup({
 				maxWidth : 250,
-				autoPanPaddingTopLeft : leaflet.point(12, 12),
-				autoPanPaddingBottomRight : leaflet.point(12, 36)
+				autoPanPaddingTopLeft : leaflet.point(12, 78),
+				autoPanPaddingBottomRight : leaflet.point(12, 36),
+				
 			});
 			
 			thePopup.setContent(this.contentForLoc(aLocation));
@@ -817,7 +837,7 @@
 						.attr('target', '_blank')
 						.html(job.JobTitle.replace(/-/g, '&#8209;'))
 						.attr('title',job.JobTitle +
-						      '\r\nClick to go to USAJobs.gov and view this job announcement');
+						      '\r\nView this job announcement on USAJobs.gov');
 				spanGrd = angular.element(
 						'<span class="loc-popup-job-list-item-tag small"></span>').html(
 						job.PayPlan + '&#8209;' + job.Grade).attr('title', 'Grade');
@@ -851,17 +871,16 @@
 					position : 'topright'
 				},
 				onAdd : function (map) {
-					var container, img, imgURL, isRetina = window.devicePixelRatio >= 1.5;
-					
-					imgURL = isRetina ? 'http://www.bia.gov/cs/groups/webteam/documents/document/vacmap_zoomreturn_icon_retina.png'
-							: 'http://www.bia.gov/cs/groups/webteam/documents/document/vacmap_zoomreturn_icon.png';
+					var container, icon, i, labelSpan;
 					
 					container = leaflet.DomUtil.create('div', 'usajobs-map-viewreset-control');
-					angular.element(container).attr('title', 'Click to reset map view');
-					img = leaflet.DomUtil.create('i','fa fa-4x fa-compass usajobs-map-reset-icon', container);
-
-					
+					angular.element(container).attr('title', 'Reset map view');
+					icon = leaflet.DomUtil.create('div','usajobs-map-reset-icon', container);
+					i = leaflet.DomUtil.create('i', 'fa fa-4x fa-compass', icon);
+					labelSpan = leaflet.DomUtil.create('span','usajobs-icon-label', icon);
+					$(labelSpan).text('Reset');
 					$(container).hide();
+					exitRight(container);
 
 					// return map view to starting view when clicked
 					// provides users an escape hatch while exploring the
@@ -877,11 +896,20 @@
 					// position
 					map.on('moveend', function (e) {
 						if (!e.target.mapViewCentered()) {
-							$(container).fadeIn(100);
+							enterRight(container);
 						} else {
-							$(container).fadeOut(100);
+							//$(container).fadeOut(100);
+							exitRight(container);
 						}
 					});
+					
+					function exitRight (el) {
+						$(el).animate({right: '-66'}, { duration: 250, done: function (anim) { $(anim.elem).hide() }});
+					}
+					
+					function enterRight (el) {
+						$(el).show().animate({right: '0'}, 175);
+					}
 					
 					return container;
 				}
@@ -899,34 +927,37 @@
 					position : 'topleft'
 				},
 				onAdd : function (map) {
-					var container, icon, i;
+					var container, icon, labelSpan;
 					
 					container = leaflet.DomUtil.create('div', 'usajobs-map-showall-control');
-					angular.element(container).attr('title', 'Click to zoom out to all job locations');
+					angular.element(container).attr('title', 'Zoom out to all job locations');
 					icon = leaflet.DomUtil.create('div','usajobs-map-showall-icon center-block', container);
 		
 					// create icon with FontAwesome glyphs
 					leaflet.DomUtil.create('i','fa fa-fw',icon);
-					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack',icon);
+					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack top-pin',icon);
 					leaflet.DomUtil.create('i','fa fa-fw',icon);
 					leaflet.DomUtil.create('br', '', icon);
-					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack',icon);
-					leaflet.DomUtil.create('i','fa fa-fw fa-arrows-alt',icon);
-					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack',icon);
+					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack left-pin',icon);
+					leaflet.DomUtil.create('i','fa fa-fw fa-arrows-alt center-arrows',icon);
+					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack right-pin',icon);
 					leaflet.DomUtil.create('br', '', icon);
 					leaflet.DomUtil.create('i','fa fa-fw',icon);
-					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack',icon);
+					leaflet.DomUtil.create('i','fa fa-fw fa-1x fa-thumb-tack bottom-pin',icon);
 					leaflet.DomUtil.create('i','fa  fa-fw',icon);
 					
+					labelSpan = leaflet.DomUtil.create('span','usajobs-icon-label', icon);
+					$(labelSpan).text('Show All');
 					// start hidden
 					$(container).hide();
+					exitLeft(container);
 
 					// If there are markers beyond starting view bounds,
 					// show control and set property on `map` and `location`.
 					events.geodata.onAvailable(onGeodataAvailable);
 					function onGeodataAvailable (e, location) {
 						if (!map.inStartBounds(location)) {
-							$(container).show();
+							enterLeft(container);
 							map.markersOutsideStartView = true;
 							location.outsideMapStartBounds = true;
 						}
@@ -937,25 +968,25 @@
 					// outside the map view.
 					events.jobs.onQueryStarted(onQueryStarted);
 					function onQueryStarted () {
-						$(container).fadeOut(100);
+						exitLeft(container);
 					}
 					
 					// show when map is at starting view or markers are not visible
 					// hide when all markers are visible
 					map.on('zoomend', function (e) {
 						if (e.target.mapAtDefaultZoom() && e.target.markersOutsideStartView) {
-							$(container).fadeIn(100);
+							enterLeft(container);
 						} else if (e.target.markersOutsideBounds()) {
-							$(container).fadeIn(100);
+							enterLeft(container);
 						} else {
-							$(container).fadeOut(100);
+							exitLeft(container);
 						}
 					});
 					
 					// show if any markers are outside view bounds
 					map.on('moveend', function (e) {
 						if (e.target.markersOutsideBounds()) {
-							$(container).fadeIn(100);
+							enterLeft(container);
 						}
 					});
 					
@@ -969,8 +1000,19 @@
 								map.showAllMarkers();
 							});
 					
+					
+					function exitLeft (el) {
+						$(el).animate({left: '-66'}, { duration: 250, done: function (anim) { $(anim.elem).hide() }});
+					}
+					
+					function enterLeft (el) {
+						$(el).show().animate({left: '0'}, 175);
+					}
+					
 					return container;
 				}
 			});
 	}
+	
+	
 })();
