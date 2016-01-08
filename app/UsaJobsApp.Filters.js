@@ -1,14 +1,23 @@
 /**
- * @module UsaJobsMap Custom Filters Module
- */
+* @module UsaJobsMap Custom Filters Module
+*/
 (function () {
 	angular.module('UsaJobsApp.Filters', [ 'MomentModule' ]);
+	// Filter Declarations
+	
 	angular.module('UsaJobsApp.Filters').filter('grade', usaJobsGradeFilter);
 	angular.module('UsaJobsApp.Filters').filter('trailingzeroes', trailingZeroesFilter);
 	angular.module('UsaJobsApp.Filters').filter('datedescription', dateDescriptionFilter);
 	angular.module('UsaJobsApp.Filters').filter('stateAbbreviation', statePostalAbbreviationFilter);
 	angular.module('UsaJobsApp.Filters').constant('stateAbbreviationValues', stateAbbrevValues());
 	
+	// Filter Functions
+	
+	/**
+	 * Pay Grade Format Filter
+	 * Pads Pay Grade number with a leading 0. (Ex: input `5` returns `05`)
+	 * @returns {Function} returns filter function.
+	 */
 	function usaJobsGradeFilter () {
 		return function (input) {
 			var output = input.toString();
@@ -19,13 +28,25 @@
 		};
 	}
 	
+	/**
+	 * Trailing Zeroes Filter
+	 * Remove trailing cents from Salary amount.
+	 * @returns {Function} returns filter function.
+	 */
 	function trailingZeroesFilter () {
 		return function (input) {
 			return input.replace(/\.0+/g, "");
 		};
 	}
 	
-	
+	/**
+	 * Date Format Filter
+	 * Return date in date format specified in Settings module.
+	 * Since this intended to be used to display Job closing dates,
+	 * it returns a description, "today" if the Job closing date
+	 * matches the current date.
+	 * @returns {Function} returns filter function.
+	 */
 	dateDescriptionFilter.$inject = [ 'moment', 'settings' ];
 	function dateDescriptionFilter (moment, settings) {
 		return function (input) {
@@ -40,8 +61,13 @@
 		};
 	}
 	
+	/**
+	 * State Name Abbreviation Filter
+	 * Converts full state names to abbreviations to save space.
+	 * @returns {Function} returns filter function.
+	 */
 	statePostalAbbreviationFilter.$inject = ['stateAbbreviationValues'];
-	function statePostalAbbreviationFilter (stateAbbr) {
+	function statePostalAbbreviationFilter (stateAbbr) { // inject State abbreviation data
 		return function filter(input, style) {
 			var state, re;
 			// iterate through state names
@@ -58,11 +84,16 @@
 				    }
 				}
 			}
-			// return input if there is no match
+			// return unchanged input if there is no match
 			return input;
 		    }
 	}
 	
+	/**
+	 * stateAbbreviationValues Constant Data
+	 * Return data for use in stateAbbreviationValues constant.
+	 * @returns {Object}
+	 */
 	function stateAbbrevValues () {
 		return {
 		"Alabama": {
@@ -271,4 +302,5 @@
 		},
 	    }
 	}
+	
 })();
