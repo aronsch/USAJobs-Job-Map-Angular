@@ -1,18 +1,15 @@
 /**
- * @module UsaJobsApp Data module
- * - Provides Service to retrieve jobs from USAJobs.gov.
- * - Provides Factory for creating `Job` objects, which extend the job results from USAJobs.gov
- * - Provides Directive and Controller for filtering job results
- * - Provides Directive and Controller for element displaying the number of jobs meeting filter criteria
- * - Provides Directive and Controller for element displaying total job results count and organization.
- */
-
+* @module UsaJobsApp Data module
+* - Provides Service to retrieve jobs from USAJobs.gov.
+* - Provides Factory for creating `Job` objects, which extend the job results from USAJobs.gov
+* - Provides Directive and Controller for filtering job results
+* - Provides Directive and Controller for element displaying the number of jobs meeting filter criteria
+* - Provides Directive and Controller for element displaying total job results count and organization.
+*/
 (function () {
-	/* Module Registration  */
 	angular.module('UsaJobsApp.Data', [ 'UsaJobsApp.Settings', 'UsaJobsApp.Filters', 'UsaJobsApp.Utilities',
-			'MomentModule', 'LeafletModule']);
-	
-	/* Service Declarations */
+	'MomentModule', 'LeafletModule']);
+	// Data Module Service Declarations
 	angular.module('UsaJobsApp.Data').service('Jobs', Jobs);
 	angular.module('UsaJobsApp.Data').factory('Job', JobFactory);
 	angular.module('UsaJobsApp.Data').directive('jobFilter', jobDataFilterDirective);
@@ -22,7 +19,11 @@
 	angular.module('UsaJobsApp.Data').controller('vacancyCountDescController', vacancyCountDescController);
 	angular.module('UsaJobsApp.Data').controller('jobInfoController', jobInfoController);
 	
-	/* Service Functions */
+	/*
+	 *
+	 * Data Module Service Functions
+	 *
+	 */
 	
 	/**
 	 * USA Jobs Data Service
@@ -79,7 +80,7 @@
 				params : params
 			}).success(queryResolved);
 		}
-
+	
 		/**
 		 * @private
 		 * Handle job query response
@@ -90,7 +91,7 @@
 			self.resolved = true; // set query status to resolved
 			Events.jobs.available(); // emit jobs available event
 		}
-
+	
 		/**
 		 * @private
 		 * Take job query results and add to `JobData` collection as `Job` objects.
@@ -118,7 +119,7 @@
 			});
 			self.hasAlphaGrades = hasAlphas;
 		}
-
+	
 		/**
 		 * @private
 		 * Group jobs by location and set as {locations} property.
@@ -140,7 +141,7 @@
 			placeNames = unique(placeNames);
 			// create location keys and objects
 			angular.forEach(placeNames, function (placeName) {
-
+	
 				// create location info object
 				jobs.locations[placeName] = {
 					name : placeName,
@@ -196,7 +197,7 @@
 		/*
 		 * Utility Functions
 		 */
-
+	
 		/**
 		 * @public
 		 * Return the maximum pay grade listed in the jobs results.
@@ -387,7 +388,7 @@
 				this.visible = true;
 			}
 		}
-
+	
 		/**
 		 * @public
 		 * Determine if the job is hourly.
@@ -557,51 +558,11 @@
 	 * Directive that provides a filter form for filtering USA Jobs search results.
 	 */
 	function jobDataFilterDirective () {
-		var tmplt = '';
-		
-		tmplt += '<div class="row form job-filter">';
-		tmplt += '<vacancy-count-desc></vacancy-count-desc>';
-		
-		// Job salary slider
-		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-10 col-lg-10"><label for="salary-slider">Salary Filter</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.salaryFilter.isActive()" ng-click="filters.salaryFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
-		tmplt += '<div range-slider show-values="true" filter="currency" id="salary-slider" min="filters.salaryFilter.lowest" max="filters.salaryFilter.highest" step="10000" model-min="filters.salaryFilter.min" model-max="filters.salaryFilter.max" ng-class="{ disabled : !jobs.resolved }"></div>';
-		tmplt += '</div>';
-		
-		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-2 col-lg-2 text-right"><label class="hidden-xs hidden-sm">&nbsp;</label><button class="btn btn-default btn-xs usajobs-filters-advanced-btn " ng-disabled="!jobs.resolved"  ng-click="toggleAdvancedFilters()">{{ showAdvancedFilters ? "Hide" : "More"}} Filters</button></div>';
-		
-		// Advanced filters
-		tmplt += '<div ng-show="showAdvancedFilters">';
-		// Grade filter slider
-		tmplt += '<div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-3 usajobs-grade-filter" ng-hide="filters.gradeFilter.isDisabled"><label for="grade-slider">Grade Filter</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.gradeFilter.isActive()" ng-click="filters.gradeFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
-		tmplt += '<div range-slider show-values="true" filter="grade" id="grade-slider" min="filters.gradeFilter.lowest" max="filters.gradeFilter.highest" model-min="filters.gradeFilter.min" model-max="filters.gradeFilter.max" ng-class="{ disabled : !jobs.resolved }"></div></div>';
-		// Text filter
-		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="filters.stringFilter.value" class="">Text Filter</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.stringFilter.isActive()" ng-click="filters.stringFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
-		tmplt += '<input ng-disabled="!jobs.resolved" type="text" class="form-control" ng-model="filters.stringFilter.value" ng-change="filter()" placeholder="filter vacancies by typing here"></div>';
-		// State dropdown
-		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="state-filter">State or Country </label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.state.isActive()" ng-click="filters.state.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
-		tmplt += '<select class="form-control" id="state-filter" ng-model="filters.state.value" ng-change="filter()"  ng-options="state.name for state in jobs.JobData.states"><option value=""></option></select>';
-		tmplt += '</div>';
-		// Pay plan radio buttons
-		tmplt += '<div class="form-group col-xs-6 col-sm-6 col-md-6 col-lg-3"><label for="pay-plan-filter">Pay Basis &nbsp;</label>';
-		tmplt += '<button type="button" class="btn btn-xs btn-danger pull-right" ng-show="filters.payFilter.isActive()" ng-click="filters.payFilter.reset(true)"><i class="fa fa-fw fa-close"></i>Clear</button>';
-		tmplt += '<div id="pay-plan-filter" class="input-group">';
-		tmplt += '<label class="radio-inline"><input id="allpb-radio" name="pay-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.all" ng-disabled="!jobs.resolved"> Any&nbsp;</label>';
-		tmplt += '<label class="radio-inline"><input id="salaried-radio" name="pay-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.salaried" ng-disabled="!jobs.resolved"> Salaried&nbsp;</label>';
-		tmplt += '<label class="radio-inline"><input id="hourly-radio" name="pay-radio" type="radio" ng-change="filter()" ng-model="filters.payFilter.selection" ng-value="filters.payFilter.hourly" ng-disabled="!jobs.resolved"> Hourly&nbsp;</label>';
-		tmplt += '</div></div>';
-		
-		tmplt += '</div>'; // advanced filters div close
-		tmplt += '</div>'; // form div close
-		
 		return {
 			restrict : 'E',
 			scope : {},
 			controller : 'JobDataFilter',
-			template : tmplt
+			templateUrl : 'job-filter.html'
 		};
 	}
 	
@@ -666,6 +627,17 @@
 			},
 			isActive: function () {
 				return !angular.equals(this.min, this.lowest) || !angular.equals(this.max, this.highest);
+			},
+			setGradeRange: function (minGrade, maxGrade) {
+				if ($scope.jobs.hasAlphaGrades) {
+					// disable grade filter if job listings have alpha grades
+					this.isDisabled = true;
+					this.lowest = 0;
+					this.highest = 0;
+				} else {
+					this.lowest = minGrade;
+					this.highest = maxGrade;
+				}
 			}
 		};
 		
@@ -685,6 +657,12 @@
 			},
 			isActive: function () {
 				return this.min >= this.lowest + 1 || this.max !== this.highest;
+			},
+			setSalaryRange: function (minSalary, maxSalary) {
+				this.highest = maxSalary;
+				this.lowest = minSalary;
+				this.max = maxSalary > 100000 ? Math.ceil((maxSalary/100000))*100000 : maxSalary;
+				this.min = Math.floor(minSalary);
 			}
 		};
 		
@@ -765,20 +743,9 @@
 			    minSalary = Math.floor($scope.jobs.getMinSalary());
 			
 			// Set salary slider ranges
-			$scope.filters.salaryFilter.highest = maxSalary;
-			$scope.filters.salaryFilter.max = maxSalary;
-			$scope.filters.salaryFilter.lowest = minSalary;
-			$scope.filters.salaryFilter.min = minSalary;
-			
-			// disable grade filter if job listings have alpha grades
-			if ($scope.jobs.hasAlphaGrades) {
-				$scope.filters.gradeFilter.isDisabled = true;
-				$scope.filters.gradeFilter.lowest = 0;
-				$scope.filters.gradeFilter.highest = 0;
-			} else {
-				$scope.filters.gradeFilter.lowest = minGrade;
-				$scope.filters.gradeFilter.highest = maxGrade;
-			}
+			$scope.filters.salaryFilter.setSalaryRange(minSalary, maxSalary);
+			// Set grade slider ranges
+			$scope.filters.gradeFilter.setGradeRange(minGrade, maxGrade);
 		}
 		
 		/**
@@ -919,17 +886,12 @@
 	 * Directive displaying the number of jobs that meet current filter criteria.
 	 */
 	function vacancyCountDescDirective () {
-		var tmplt = '';
-		tmplt += '<p class=\"usajobs-vac-count text-center\" ng-class=\"{\'bg-clear\': filterStatus.active, \'text-primary\': filterStatus.active, \'bg-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active, \'text-danger\': jobs.JobData.visibleCount === 0 && filterStatus.active}\">';
-		tmplt += '<span ng-show=\"filterStatus.active\"><strong>{{ jobs.JobData.visibleCount }}</strong> vacanc{{ jobs.JobData.visibleCount == 1 ? \"y\" : \"ies\"}} match{{ jobs.JobData.visibleCount == 1 ? \"es\" : \"\"}} your filter criteria</strong></span>';
-		tmplt += '<span ng-hide=\"filterStatus.active\">&nbsp;<i class="fa fa-fw fa-search" style="color: #ccc;"></i>&nbsp;</span>';
-		tmplt += '</p>';
 		
 		return {
 			restrict : 'E',
 			scope : {},
 			controller : 'vacancyCountDescController',
-			template : tmplt
+			templateUrl : 'vacancy-count.html'
 		};
 	}
 	
@@ -948,24 +910,11 @@
 	 * are being displayed.
 	 */
 	function jobInfoDirective () {
-		var tmplt = '';
-		tmplt += '<p>';
-		tmplt += '<span ng-hide="jobs.resolved">';
-		tmplt += '<i class="fa fa-spinner fa-pulse"></i> ';
-		tmplt += 'Getting <strong>{{jobs.orgName}}</strong> job openings from ';
-		tmplt += '</span>';
-		tmplt += '<span ng-show="jobs.resolved">';
-		tmplt += '<strong>{{ jobs.JobData.length }} {{ jobs.orgName }}</strong> job openings are currently listed on ';
-		tmplt += '</span>';
-		tmplt += '<a ng-href="{{jobs.orgSearchUrl}}" target="_blank">USAJobs.gov<i class="fa fa-fw fa-external-link"></i></a>';
-		tmplt += ' <span class="pull-right btn btn-xs btn-default" ng-click="refresh()" ng-disabled="!jobs.resolved"><i class="fa fa-refresh" ng-class="{ \'fa-spin\': !jobs.resolved }"></i> Refresh</span>'
-		tmplt += '</p>';
-		
 		return {
 			restrict : 'E',
 			scope : {},
 			controller : 'jobInfoController',
-			template : tmplt
+			templateUrl : 'job-info.html'
 		};
 	}
 	
@@ -981,4 +930,5 @@
 			$scope.jobs.getJobs();
 		}
 	}
+
 })();
