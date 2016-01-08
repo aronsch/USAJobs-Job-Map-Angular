@@ -1,19 +1,20 @@
 /**
- * @module UsaJobsMap Location module
- * 	   - Job Location Factory
- * 	   - Geocoding Service
- *         - Geodata Caching Service
- */
+* @module UsaJobsMap Location module
+* - Job Location Factory
+* - Geocoding Service
+* - Geodata Caching Service
+*/
 (function () {
-	angular.module('UsaJobsApp.Location', ['UsaJobsApp.Settings']);
+	angular.module('UsaJobsApp.Location', ['UsaJobsApp.Settings', 'MomentModule', 'LeafletModule']);
 	
-	/* Service Declarations */
+	// Location Module Service Declarations
+	
 	angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocationFactory);
 	angular.module('UsaJobsApp.Location').service('geocodeService', geocodeService);
 	angular.module('UsaJobsApp.Location').service('geodataCache', geodataCache);
 	
-	/* Service Functions */
-	
+	// Location Module Service Functions
+
 	/**
 	 * JobLocation Object Factory
 	 * Job location object that automatically requests its geolocation
@@ -117,10 +118,10 @@
 		this.queue = []; // geocode processing queue
 		this.isRunning = false; // current processing status
 		
-		/* Public Function Bindings */
+		/* Public Functions */
 		this.geocode = geocode;
 		
-		/* Private Function Bindings */
+		/* Private Functions */
 		this._run = run;
 		this._geocodeRun = geocodeRun;
 		this._addToQueue = addToQueue;
@@ -249,7 +250,7 @@
 	 * Geodata Caching Service
 	 * Cache and retrieve Geodata from geocoding calls
 	 */
-	geodataCache.$inject = [ '$timeout' ];
+	geodataCache.$inject = [ '$timeout', 'moment' ];
 	function geodataCache ($timeout) {
 		var queue = [], // Geodata cache addition queue
 		    queueRunning = false, // Status of geodata queue processing
@@ -259,12 +260,12 @@
 		this.geodata = geodata = (function () {
 			// The stringified cache is parsed and returned once at startup
 			if (angular.isUndefined(window.localStorage)) {
-				// if browser does not support HTML5 local storage, return
-				// set empty object placeholder
+				// if browser does not support local storage, return
+				// an empty placeholder object
 				return {};
 			} else if (angular.isDefined(localStorage.geodataCache)) {
 				// on startup, parse and set cached geodata
-				return JSON.parse(localStorage.geodataCache);
+				return parseAndCleanCache(localStorage.geodataCache);
 			} else {
 				// or instantiate the cache if it doesn't exist
 				localStorage.geodataCache = JSON.stringify({});
@@ -278,6 +279,26 @@
 		this.addLocations = addLocations;
 		
 		/* Functions */
+		
+		/**
+		 * @private
+		 * Remove stale geodata from cache when first parsed.
+		 * @returns {*}
+		 */
+		function parseAndCleanCache (json) {
+			var geodata = JSON.parse(json);
+			    cleaned = {},
+			    cutoff = moment().subtract(90, 'days');
+			
+			// Add key to `cleaned` only if it was geocoded
+			// in the last 60 days
+			angular.forEach(geodata, function (item, key) {
+				if (item.date && moment(item.date).isAfter(cutoff))
+					cleaned[key] = item;
+			});
+			
+			return cleaned;
+		}
 		
 		/**
 		 * @public Returns an array of location names
@@ -360,4 +381,5 @@
 			}
 		}
 	}
+
 })();
