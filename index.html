@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<!-- CSS -->
+    <!-- CSS -->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type='text/css'>
     <link href="bower_components/leaflet/dist/leaflet.css" rel="stylesheet" type="text/css">
     <link href="bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet" type="text/css">
@@ -14,8 +14,9 @@
     <style type="text/css">
         /* Page Font */
         * {
-	    font-family: "open sans", helvetica, sans-serif
+            font-family: "open sans", helvetica, sans-serif
         }
+
         /* Map Element Sizing */
         .usajobs-map {
             position: relative;
@@ -24,156 +25,170 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        .usajobs-map-filter-wrapper {
+            background-color: #F9F9F9;
+            border-radius: 4px;
+        }
     </style>
-    <title>USAJobs Job Map App</title>
+    <title>USAJobs Job Map Demo</title>
 </head>
 <body class="container">
-	<h1><a href="http://www.usajobs.gov">USAJobs</a> Job Map App</h1>
-    <!-- USAJobsApp Application Element-->
-    <div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
+<h1><a href="http://www.usajobs.gov">USAJobs</a> Job Map Demo</h1>
+<!-- USAJobsApp Application Element-->
+<div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
     <org-browser></org-browser>
-	<job-info></job-info>
-	<job-map></job-map>
-	<job-filter></job-filter>
-	<job-table></job-table>
+    <job-info></job-info>
+    <div class="usajobs-map-filter-wrapper">
+        <job-map></job-map>
+        <job-filter></job-filter>
     </div>
+    <job-table></job-table>
+</div>
 
-    <!-- JS Dependencies -->
-    <script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
-    <script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
-    <script type="text/javascript" src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+<!-- JS Dependencies -->
+<script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
+<script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
+<script type="text/javascript" src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
 
-    <!-- UsaJobsApp JS -->
-    <script type="text/javascript" src="app/UsaJobsApp.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Filters.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Data.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Location.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Table.js"></script>
+<!-- UsaJobsApp JS -->
+<script type="text/javascript" src="js/dist/UsaJobsApp.min.js"></script>
 
-    <!-- Demo Org Browser Extension -->
-    <script type="text/javascript" src="bower_components/x2js/xml2json.min.js"></script>
-    <script type="text/javascript">
-        (function () {
+<!-- Demo Org Browser Extension -->
+<script type="text/javascript" src="bower_components/x2js/xml2json.min.js"></script>
+<script type="text/javascript">
+    (function () {
+        /**
+         * UsaJobsApp Org Browser extension. Creates an organization selection control using an XML reference
+         * document of all Federal Government agencies and agency sub-elements.
+         */
+
+        /* Service Declarations */
+        angular.module('UsaJobsApp').directive('orgBrowser', orgBrowserDirective);
+        angular.module('UsaJobsApp').controller('orgBrowserController', orgBrowserController);
+        angular.module('UsaJobsApp').run(configTemplates); // add org selection templates
+
+        /* Cache Demo Org Selection Control Template */
+        configTemplates.$inject = ['$templateCache'];
+        function configTemplates($templateCache) {
+            // $templateCache additions
+            $templateCache.put('demo-org-selection.html', orgSelectionTemplate());
+
+            function orgSelectionTemplate() {
+                return '<div class="form form-horizontal">' +
+                        '<label for="org-selection">Select Organization</label>&nbsp;' +
+                        '<select id="org-selection" class="form-element"' +
+                        ' ng-model="selectedOrg"' +
+                        ' ng-options="org.Value group by org.ParentName for org in agencyOptions()">' +
+                        '</select>' +
+                        '</div>';
+            }
+        }
+
+        /* Service Functions */
+
+        function orgBrowserDirective() {
+            return {
+                restrict: 'E',
+                controller: 'orgBrowserController',
+                templateUrl: 'demo-org-selection.html'
+            };
+        }
+
+        orgBrowserController.$inject = ['$scope', 'Jobs', '$http', 'unique', 'settings', 'eventService'];
+        function orgBrowserController($scope, Jobs, $http, unique, settings, Events) {
+            $scope.jobs = Jobs;
+            $scope.agencies = [];
+            $scope.agencyOptions = agencyOptions;
+            $scope.selectedOrg = {};
+
+            // Trigger on selection change
+            $scope.$watch('selectedOrg', onOrgSelected);
+
+            $http.get('FederalAgencySubElements.xml')
+                    .success(agencyXmlDocResolved);
+
             /**
-             * UsaJobsApp Org Browser extension. Creates an organization selection control using an XML reference
-             * document of all Federal Government agencies and agency sub-elements.
+             * Returns all
+             * @returns {Array}
              */
-	    
-	    /* Service Declarations */
-            angular.module('UsaJobsApp').directive('orgBrowser', orgBrowserDirective);
-            angular.module('UsaJobsApp').controller('orgBrowserController', orgBrowserController);
-
-	    /* Service Functions */
-            function orgBrowserDirective () {
-                var tmplt = '';
-                tmplt += '<div class="form form-horizontal">';
-                tmplt += '<label for="org-selection">Select Organization</label>&nbsp;';
-                tmplt += '<select id="org-selection" class="form-element" ng-model="selectedOrg" ng-options="org.Value group by org.ParentName for org in agencyOptions()"></select>'
-                tmplt += '</div>';
-                return {
-                    restrict : 'E',
-                    controller : 'orgBrowserController',
-                    template : tmplt
-                };
-            }
-
-            orgBrowserController.$inject = [ '$scope', 'Jobs', '$http', 'unique', 'settings', 'eventService' ];
-            function orgBrowserController ($scope, Jobs, $http, unique, settings, Events) {
-                $scope.jobs = Jobs;
-                $scope.agencies = [];
-                $scope.agencyOptions = agencyOptions;
-                $scope.selectedOrg = {};
-
-                // Trigger on selection change
-                $scope.$watch('selectedOrg', onOrgSelected);
-
-                $http.get('FederalAgencySubElements.xml')
-                        .success(agencyXmlDocResolved);
-
-                /**
-                 * Returns all
-                 * @returns {Array}
-                 */
-                function agencyOptions () {
-                    var opts = [];
-                    angular.forEach($scope.agencies, function (org) {
-                        if (!org.hidden) {
-                            opts.push(org);
-                        }
-                    });
-                    return opts;
-                }
-
-                function onOrgSelected(org) {
-                    if (angular.isDefined(org.Code) && angular.isDefined(org.Value)) {
-			Events.filters.clear(); // clear current filter settings
-                        $scope.jobs.orgCode = org.Code;
-                        $scope.jobs.orgName = org.Value;
-			$scope.jobs.orgSearchUrl = settings.usaJobs.searchBaseUrl + org.Code;
-                        $scope.jobs.getJobs();
+            function agencyOptions() {
+                var opts = [];
+                angular.forEach($scope.agencies, function (org) {
+                    if (!org.hidden) {
+                        opts.push(org);
                     }
-                }
+                });
+                return opts;
+            }
 
-                function agencyXmlDocResolved (data) {
-                    var x2js = new X2JS(), json = x2js.xml_str2json(data);
-
-                    addParentNames(json);
-                    $scope.agencies = json.CodeLists.CodeList.ValidValue;
-                    sortAgencies();
-                }
-
-                function sortAgencies () {
-                    $scope.agencies.sort(
-                            function (a, b) {
-                                if (a.Value > b.Value) {
-                                    return 1;
-                                }
-                                if (a.Value < b.Value) {
-                                    return -1;
-                                }
-                                // a must be equal to b
-                                return 0;
-                            });
-                }
-
-                function addParentNames (jsonData) {
-                    var parentList = [], parents = {}, agencyData = jsonData.CodeLists.CodeList.ValidValue;
-
-                    // Collect Parent Agency Codes
-                    angular.forEach(agencyData, function (org) {
-                        if (org.ParentCode !== '') {
-                            parentList.push(org.ParentCode);
-                        }
-                    });
-                    parentList = unique(parentList); // remove duplicates
-
-                    // Group parents for use as label reference
-                    angular.forEach(agencyData, function (org, idx) {
-                        // Hide select option if the org is a top-level element or if the org
-                        // is marked as disabled.
-                        if (parentList.indexOf(org.Code) > -1 || org.IsDisabled === 'Yes') {
-                            org.hidden = true;
-                            parents[org.Code] = org;
-                        }
-                    });
-
-                    // Set parent name based on ParentCode
-                    angular.forEach(agencyData, function (org) {
-                        if (parents[org.ParentCode]) {
-                            org.ParentName = parents[org.ParentCode].Value;
-                        } else {
-                            org.ParentName = '';
-                        }
-                    });
+            function onOrgSelected(org) {
+                if (angular.isDefined(org.Code) && angular.isDefined(org.Value)) {
+                    Events.filters.clear(); // clear current filter settings
+                    $scope.jobs.orgCode = org.Code;
+                    $scope.jobs.orgName = org.Value;
+                    $scope.jobs.orgSearchUrl = settings.usaJobs.searchBaseUrl + org.Code;
+                    $scope.jobs.getJobs();
                 }
             }
-        })();
 
-    </script>
+            function agencyXmlDocResolved(data) {
+                var x2js = new X2JS(), json = x2js.xml_str2json(data);
+
+                addParentNames(json);
+                $scope.agencies = json.CodeLists.CodeList.ValidValue;
+                sortAgencies();
+            }
+
+            function sortAgencies() {
+                $scope.agencies.sort(
+                        function (a, b) {
+                            if (a.Value > b.Value) {
+                                return 1;
+                            }
+                            if (a.Value < b.Value) {
+                                return -1;
+                            }
+                            // a must be equal to b
+                            return 0;
+                        });
+            }
+
+            function addParentNames(jsonData) {
+                var parentList = [], parents = {}, agencyData = jsonData.CodeLists.CodeList.ValidValue;
+
+                // Collect Parent Agency Codes
+                angular.forEach(agencyData, function (org) {
+                    if (org.ParentCode !== '') {
+                        parentList.push(org.ParentCode);
+                    }
+                });
+                parentList = unique(parentList); // remove duplicates
+
+                // Group parents for use as label reference
+                angular.forEach(agencyData, function (org) {
+                    // Hide select option if the org is a top-level element or if the org
+                    // is marked as disabled.
+                    if (parentList.indexOf(org.Code) > -1 || org.IsDisabled === 'Yes') {
+                        org.hidden = true;
+                        parents[org.Code] = org;
+                    }
+                });
+
+                // Set parent name based on ParentCode
+                angular.forEach(agencyData, function (org) {
+                    if (parents[org.ParentCode]) {
+                        org.ParentName = parents[org.ParentCode].Value;
+                    } else {
+                        org.ParentName = '';
+                    }
+                });
+            }
+        }
+    })();
+
+</script>
 </body>
 </html>

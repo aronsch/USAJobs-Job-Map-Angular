@@ -23,10 +23,11 @@
   "dependencies": {
     "angular": "~1.4.0",
     "bootstrap": "~3.3.4",
-    "font-awesome": "~4.3.0",
+    "font-awesome": "~4.5.0",
     "jquery": "~2.1.4",
     "leaflet.markercluster": "~0.4.0",
     "leaflet": "~0.7.3",
-    "moment": "~2.10.3"
+    "moment": "~2.10.3",
+    "x2js": "~1.1.7"
   }
 }
