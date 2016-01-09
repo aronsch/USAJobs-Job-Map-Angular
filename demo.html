@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<!-- CSS -->
+    <!-- CSS -->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type='text/css'>
     <link href="bower_components/leaflet/dist/leaflet.css" rel="stylesheet" type="text/css">
     <link href="bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet" type="text/css">
@@ -12,55 +12,58 @@
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
     <link href="css/usa-jobs-map.css" rel="stylesheet" type="text/css">
     <style type="text/css">
-	/* Page Font */
+        /* page font */
         * {
-	    font-family: "open sans", helvetica, sans-serif
+            font-family: "open sans", helvetica, sans-serif
         }
-        /* Map Element Sizing */
+
+        /* map element */
         .usajobs-map {
             position: relative;
             height: 400px;
             width: auto;
             display: block;
             margin-bottom: 5px;
-	    border-radius: 4px;
+            border-radius: 4px;
         }
-	
-	.usajobs-map-filter-wrapper {
-	    background-color: #F9F9F9;
-	    border-radius: 4px;
-	}
+
+        .usajobs-map-filter-wrapper {
+            background-color: #F9F9F9;
+            border-radius: 4px;
+        }
     </style>
     <title>USAJobs Job Listings</title>
 </head>
 <body class="container">
-    
-    <!-- USAJobsApp Application Element-->
-    <div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
-	<job-info></job-info>
-	<div class="usajobs-map-filter-wrapper">
-	    <job-map></job-map>
-	    <job-filter></job-filter>
-	</div>
-	<job-table></job-table>
+
+<!-- USAJobsApp Application Element-->
+<div ng-app="UsaJobsApp" org-code="ARCE" org-name="Army Corp of Engineers">
+    <job-info></job-info>
+    <div class="usajobs-map-filter-wrapper">
+        <job-map></job-map>
+        <job-filter></job-filter>
     </div>
+    <job-table></job-table>
+</div>
 
-    <!-- JS Dependencies -->
-    <script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
-    <script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
-    <script type="text/javascript" src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+<!-- JS Dependencies -->
+<script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
+<script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
+<script type="text/javascript" src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
 
-    <!-- UsaJobsApp JS -->
-    <script type="text/javascript" src="app/UsaJobsApp.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Templates.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Data.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Filters.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Location.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Map.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Settings.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.Table.js"></script>
-    <script type="text/javascript" src="app/UsaJobsApp.ExternalDependencies.js"></script>
+<!-- UsaJobsApp JS -->
+<script type="text/javascript" src="js/src/UsaJobsApp.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Templates.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Data.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Filters.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Location.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Map.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Settings.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.Table.js"></script>
+<script type="text/javascript" src="js/src/UsaJobsApp.ExternalDependencies.js"></script>
+
+<script type="text/javascript" src="js/dist/UsaJobsApp.min.js"></script>
 </body>
 </html>
