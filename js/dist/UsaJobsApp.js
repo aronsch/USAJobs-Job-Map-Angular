@@ -280,6 +280,8 @@
     /**
      * USAJobsApp HTML Templates
      * Adds programmatically generated HTML templates to Angular $templateCache
+     *
+     * TODO: turn this into a Grunt task using HTML-to-$templateCache plugin
      */
     // Generate component templates and add to cache
     angular.module('UsaJobsApp').run(configTemplates);
