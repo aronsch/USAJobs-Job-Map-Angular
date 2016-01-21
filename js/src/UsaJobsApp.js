@@ -5,9 +5,7 @@
      * - Org Code Directive to bind controller
      * - Centralized event emission and subscription service
      */
-    angular.module('UsaJobsApp', ['UsaJobsApp.Data', 'UsaJobsApp.Filters', 'UsaJobsApp.Map', 'UsaJobsApp.JobTable',
-        'UsaJobsApp.Location', 'UsaJobsApp.Utilities', 'MomentModule', 'LeafletModule',
-        'ui-rangeSlider']);
+    angular.module('UsaJobsApp', [ 'MomentModule', 'LeafletModule', 'ui-rangeSlider']);
 
     // App Module Service Declarations
     angular.module('UsaJobsApp').controller('UsaJobsAppController', AppController);

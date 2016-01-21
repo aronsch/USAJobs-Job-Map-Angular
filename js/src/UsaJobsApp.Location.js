@@ -5,13 +5,12 @@
      * - Geocoding Service
      * - Geodata Caching Service
      */
-    angular.module('UsaJobsApp.Location', ['UsaJobsApp.Settings', 'MomentModule', 'LeafletModule']);
 
     // Location Module Service Declarations
 
-    angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocationFactory);
-    angular.module('UsaJobsApp.Location').service('geocodeService', geocodeService);
-    angular.module('UsaJobsApp.Location').service('geodataCache', geodataCache);
+    angular.module('UsaJobsApp').factory('JobLocation', JobLocationFactory);
+    angular.module('UsaJobsApp').service('geocodeService', geocodeService);
+    angular.module('UsaJobsApp').service('geodataCache', geodataCache);
 
     // Location Module Service Functions
 

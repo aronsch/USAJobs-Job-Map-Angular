@@ -7,22 +7,20 @@
      * - Provides Directive and Controller for element displaying the number of jobs meeting filter criteria
      * - Provides Directive and Controller for element displaying total job results count and organization.
      */
-    angular.module('UsaJobsApp.Data', ['UsaJobsApp.Settings', 'UsaJobsApp.Filters', 'UsaJobsApp.Utilities',
-        'MomentModule', 'LeafletModule']);
 
-    // Data Module Service Declarations
+    // Data Service Declarations
 
-    angular.module('UsaJobsApp.Data').service('Jobs', Jobs);
-    angular.module('UsaJobsApp.Data').factory('Job', JobFactory);
+    angular.module('UsaJobsApp').service('Jobs', Jobs);
+    angular.module('UsaJobsApp').factory('Job', JobFactory);
 
-    angular.module('UsaJobsApp.Data').directive('jobFilter', jobDataFilterDirective);
-    angular.module('UsaJobsApp.Data').controller('JobDataFilter', JobDataFilterController);
+    angular.module('UsaJobsApp').directive('jobFilter', jobDataFilterDirective);
+    angular.module('UsaJobsApp').controller('JobDataFilter', JobDataFilterController);
 
-    angular.module('UsaJobsApp.Data').directive('vacancyCountDesc', vacancyCountDescDirective);
-    angular.module('UsaJobsApp.Data').controller('vacancyCountDescController', vacancyCountDescController);
+    angular.module('UsaJobsApp').directive('vacancyCountDesc', vacancyCountDescDirective);
+    angular.module('UsaJobsApp').controller('vacancyCountDescController', vacancyCountDescController);
 
-    angular.module('UsaJobsApp.Data').directive('jobInfo', jobInfoDirective);
-    angular.module('UsaJobsApp.Data').controller('jobInfoController', jobInfoController);
+    angular.module('UsaJobsApp').directive('jobInfo', jobInfoDirective);
+    angular.module('UsaJobsApp').controller('jobInfoController', jobInfoController);
 
     // Data Module Service Functions
 

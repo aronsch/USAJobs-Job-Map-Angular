@@ -25,11 +25,7 @@
  */
 
 (function () {
-    /*
-     * @module Utilities
-     */
-    angular.module('UsaJobsApp.Utilities', []);
-    angular.module('UsaJobsApp.Utilities').constant('unique', function (array) {
+    angular.module('UsaJobsApp').constant('unique', function (array) {
         var i, j, a = array.concat();
         for (i = 0; i < a.length; ++i) {
             for (j = i + 1; j < a.length; ++j) {
@@ -41,7 +37,7 @@
         return a;
     });
 
-    angular.module('UsaJobsApp.Utilities').constant('pluralize', function (count, root, singular, plural) {
+    angular.module('UsaJobsApp').constant('pluralize', function (count, root, singular, plural) {
         return (count != 1) ? (root + plural) : (root + singular);
     });
 })();
