@@ -1,5 +1,5 @@
 /*! 
-* UsaJobsApp - v0.0.1 - 2016-01-08
+* UsaJobsApp - v0.0.1 - 2016-01-21
 * https://github.com/aronsch/USAJobs-Job-Map-Angular
 * Copyright (c) 2016 Aron Schneider
 * Licensed MIT
@@ -11,9 +11,7 @@
      * - Org Code Directive to bind controller
      * - Centralized event emission and subscription service
      */
-    angular.module('UsaJobsApp', ['UsaJobsApp.Data', 'UsaJobsApp.Filters', 'UsaJobsApp.Map', 'UsaJobsApp.JobTable',
-        'UsaJobsApp.Location', 'UsaJobsApp.Utilities', 'MomentModule', 'LeafletModule',
-        'ui-rangeSlider']);
+    angular.module('UsaJobsApp', [ 'MomentModule', 'LeafletModule', 'ui-rangeSlider']);
 
     // App Module Service Declarations
     angular.module('UsaJobsApp').controller('UsaJobsAppController', AppController);
@@ -191,9 +189,8 @@
      * @module UsaJobsMap App Settings Module
      */
 
-    // Settings Module Declarations
-    angular.module('UsaJobsApp.Settings', []);
-    angular.module('UsaJobsApp.Settings').value('settings', appSettings());
+    // Settings Declaration
+    angular.module('UsaJobsApp').value('settings', appSettings());
 
     /**
      * Return App Settings object.
@@ -560,22 +557,20 @@
      * - Provides Directive and Controller for element displaying the number of jobs meeting filter criteria
      * - Provides Directive and Controller for element displaying total job results count and organization.
      */
-    angular.module('UsaJobsApp.Data', ['UsaJobsApp.Settings', 'UsaJobsApp.Filters', 'UsaJobsApp.Utilities',
-        'MomentModule', 'LeafletModule']);
 
-    // Data Module Service Declarations
+    // Data Service Declarations
 
-    angular.module('UsaJobsApp.Data').service('Jobs', Jobs);
-    angular.module('UsaJobsApp.Data').factory('Job', JobFactory);
+    angular.module('UsaJobsApp').service('Jobs', Jobs);
+    angular.module('UsaJobsApp').factory('Job', JobFactory);
 
-    angular.module('UsaJobsApp.Data').directive('jobFilter', jobDataFilterDirective);
-    angular.module('UsaJobsApp.Data').controller('JobDataFilter', JobDataFilterController);
+    angular.module('UsaJobsApp').directive('jobFilter', jobDataFilterDirective);
+    angular.module('UsaJobsApp').controller('JobDataFilter', JobDataFilterController);
 
-    angular.module('UsaJobsApp.Data').directive('vacancyCountDesc', vacancyCountDescDirective);
-    angular.module('UsaJobsApp.Data').controller('vacancyCountDescController', vacancyCountDescController);
+    angular.module('UsaJobsApp').directive('vacancyCountDesc', vacancyCountDescDirective);
+    angular.module('UsaJobsApp').controller('vacancyCountDescController', vacancyCountDescController);
 
-    angular.module('UsaJobsApp.Data').directive('jobInfo', jobInfoDirective);
-    angular.module('UsaJobsApp.Data').controller('jobInfoController', jobInfoController);
+    angular.module('UsaJobsApp').directive('jobInfo', jobInfoDirective);
+    angular.module('UsaJobsApp').controller('jobInfoController', jobInfoController);
 
     // Data Module Service Functions
 
@@ -1489,13 +1484,12 @@
      * - Geocoding Service
      * - Geodata Caching Service
      */
-    angular.module('UsaJobsApp.Location', ['UsaJobsApp.Settings', 'MomentModule', 'LeafletModule']);
 
     // Location Module Service Declarations
 
-    angular.module('UsaJobsApp.Location').factory('JobLocation', JobLocationFactory);
-    angular.module('UsaJobsApp.Location').service('geocodeService', geocodeService);
-    angular.module('UsaJobsApp.Location').service('geodataCache', geodataCache);
+    angular.module('UsaJobsApp').factory('JobLocation', JobLocationFactory);
+    angular.module('UsaJobsApp').service('geocodeService', geocodeService);
+    angular.module('UsaJobsApp').service('geodataCache', geodataCache);
 
     // Location Module Service Functions
 
@@ -1877,12 +1871,11 @@
      * @module UsaJobsApp Job Table Module
      * - Directive and controller for displaying job listings in a table.
      */
-    angular.module('UsaJobsApp.JobTable', ['UsaJobsApp.Data']);
 
     // Job Table Module Service Declarations
 
-    angular.module('UsaJobsApp.JobTable').controller('jobTableCtrl', jobTableController);
-    angular.module('UsaJobsApp.JobTable').directive('jobTable', jobTableDirective);
+    angular.module('UsaJobsApp').controller('jobTableCtrl', jobTableController);
+    angular.module('UsaJobsApp').directive('jobTable', jobTableDirective);
 
     // Job Table Module Service Functions
 
@@ -1967,15 +1960,13 @@
      *         - Map Control - Show all markers control generator
      *         - Map marker defaults provider
      */
-    angular.module('UsaJobsApp.Map', ['LeafletModule', 'UsaJobsApp.Settings', 'UsaJobsApp.Utilities',
-        'UsaJobsApp.Location', 'UsaJobsApp.Data']);
 
-    // Map Module Service Declarations
-    angular.module('UsaJobsApp.Map').controller('JobMapController', JobMapController);
-    angular.module('UsaJobsApp.Map').directive('jobMap', jobMapDirective);
-    angular.module('UsaJobsApp.Map').factory('mapResetControl', mapResetControl);
-    angular.module('UsaJobsApp.Map').factory('mapShowAllControl', mapShowAllControl);
-    angular.module('UsaJobsApp.Map').service('markers', markers);
+    // Map Service Declarations
+    angular.module('UsaJobsApp').controller('JobMapController', JobMapController);
+    angular.module('UsaJobsApp').directive('jobMap', jobMapDirective);
+    angular.module('UsaJobsApp').factory('mapResetControl', mapResetControl);
+    angular.module('UsaJobsApp').factory('mapShowAllControl', mapShowAllControl);
+    angular.module('UsaJobsApp').service('markers', markers);
 
     // Map Module Functions
 
@@ -2999,14 +2990,14 @@
     /**
      * @module UsaJobsMap Custom Filters Module
      */
-    angular.module('UsaJobsApp.Filters', ['MomentModule']);
-    // Filter Declarations
 
-    angular.module('UsaJobsApp.Filters').filter('grade', usaJobsGradeFilter);
-    angular.module('UsaJobsApp.Filters').filter('trailingzeroes', trailingZeroesFilter);
-    angular.module('UsaJobsApp.Filters').filter('datedescription', dateDescriptionFilter);
-    angular.module('UsaJobsApp.Filters').filter('stateAbbreviation', statePostalAbbreviationFilter);
-    angular.module('UsaJobsApp.Filters').constant('stateAbbreviationValues', stateAbbrevValues());
+
+    // Filter Declarations
+    angular.module('UsaJobsApp').filter('grade', usaJobsGradeFilter);
+    angular.module('UsaJobsApp').filter('trailingzeroes', trailingZeroesFilter);
+    angular.module('UsaJobsApp').filter('datedescription', dateDescriptionFilter);
+    angular.module('UsaJobsApp').filter('stateAbbreviation', statePostalAbbreviationFilter);
+    angular.module('UsaJobsApp').constant('stateAbbreviationValues', stateAbbrevValues());
 
     // Filter Functions
 
@@ -3329,11 +3320,7 @@
  */
 
 (function () {
-    /*
-     * @module Utilities
-     */
-    angular.module('UsaJobsApp.Utilities', []);
-    angular.module('UsaJobsApp.Utilities').constant('unique', function (array) {
+    angular.module('UsaJobsApp').constant('unique', function (array) {
         var i, j, a = array.concat();
         for (i = 0; i < a.length; ++i) {
             for (j = i + 1; j < a.length; ++j) {
@@ -3345,7 +3332,7 @@
         return a;
     });
 
-    angular.module('UsaJobsApp.Utilities').constant('pluralize', function (count, root, singular, plural) {
+    angular.module('UsaJobsApp').constant('pluralize', function (count, root, singular, plural) {
         return (count != 1) ? (root + plural) : (root + singular);
     });
 })();
