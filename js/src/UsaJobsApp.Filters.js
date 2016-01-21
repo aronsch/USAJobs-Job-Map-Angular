@@ -2,14 +2,14 @@
     /**
      * @module UsaJobsMap Custom Filters Module
      */
-    angular.module('UsaJobsApp.Filters', ['MomentModule']);
-    // Filter Declarations
 
-    angular.module('UsaJobsApp.Filters').filter('grade', usaJobsGradeFilter);
-    angular.module('UsaJobsApp.Filters').filter('trailingzeroes', trailingZeroesFilter);
-    angular.module('UsaJobsApp.Filters').filter('datedescription', dateDescriptionFilter);
-    angular.module('UsaJobsApp.Filters').filter('stateAbbreviation', statePostalAbbreviationFilter);
-    angular.module('UsaJobsApp.Filters').constant('stateAbbreviationValues', stateAbbrevValues());
+
+    // Filter Declarations
+    angular.module('UsaJobsApp').filter('grade', usaJobsGradeFilter);
+    angular.module('UsaJobsApp').filter('trailingzeroes', trailingZeroesFilter);
+    angular.module('UsaJobsApp').filter('datedescription', dateDescriptionFilter);
+    angular.module('UsaJobsApp').filter('stateAbbreviation', statePostalAbbreviationFilter);
+    angular.module('UsaJobsApp').constant('stateAbbreviationValues', stateAbbrevValues());
 
     // Filter Functions
 

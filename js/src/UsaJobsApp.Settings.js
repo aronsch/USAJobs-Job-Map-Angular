@@ -3,9 +3,8 @@
      * @module UsaJobsMap App Settings Module
      */
 
-    // Settings Module Declarations
-    angular.module('UsaJobsApp.Settings', []);
-    angular.module('UsaJobsApp.Settings').value('settings', appSettings());
+    // Settings Declaration
+    angular.module('UsaJobsApp').value('settings', appSettings());
 
     /**
      * Return App Settings object.

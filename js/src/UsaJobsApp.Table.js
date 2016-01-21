@@ -3,12 +3,11 @@
      * @module UsaJobsApp Job Table Module
      * - Directive and controller for displaying job listings in a table.
      */
-    angular.module('UsaJobsApp.JobTable', ['UsaJobsApp.Data']);
 
     // Job Table Module Service Declarations
 
-    angular.module('UsaJobsApp.JobTable').controller('jobTableCtrl', jobTableController);
-    angular.module('UsaJobsApp.JobTable').directive('jobTable', jobTableDirective);
+    angular.module('UsaJobsApp').controller('jobTableCtrl', jobTableController);
+    angular.module('UsaJobsApp').directive('jobTable', jobTableDirective);
 
     // Job Table Module Service Functions
 

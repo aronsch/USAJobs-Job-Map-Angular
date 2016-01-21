@@ -9,15 +9,13 @@
      *         - Map Control - Show all markers control generator
      *         - Map marker defaults provider
      */
-    angular.module('UsaJobsApp.Map', ['LeafletModule', 'UsaJobsApp.Settings', 'UsaJobsApp.Utilities',
-        'UsaJobsApp.Location', 'UsaJobsApp.Data']);
 
-    // Map Module Service Declarations
-    angular.module('UsaJobsApp.Map').controller('JobMapController', JobMapController);
-    angular.module('UsaJobsApp.Map').directive('jobMap', jobMapDirective);
-    angular.module('UsaJobsApp.Map').factory('mapResetControl', mapResetControl);
-    angular.module('UsaJobsApp.Map').factory('mapShowAllControl', mapShowAllControl);
-    angular.module('UsaJobsApp.Map').service('markers', markers);
+    // Map Service Declarations
+    angular.module('UsaJobsApp').controller('JobMapController', JobMapController);
+    angular.module('UsaJobsApp').directive('jobMap', jobMapDirective);
+    angular.module('UsaJobsApp').factory('mapResetControl', mapResetControl);
+    angular.module('UsaJobsApp').factory('mapShowAllControl', mapShowAllControl);
+    angular.module('UsaJobsApp').service('markers', markers);
 
     // Map Module Functions
 
