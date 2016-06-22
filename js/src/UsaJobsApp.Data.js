@@ -90,8 +90,6 @@
             addJobResults(data);
             self.resolved = true; // set query status to resolved
             Events.jobs.available(self.JobData); // emit jobs available event
-
-            console.log(self.getPayTypeList());
         }
 
         /**
