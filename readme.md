@@ -1,6 +1,6 @@
 # [USA Jobs](https://www.usajobs.gov) Job Listing Map
 
-An Angular app for browsing jobs listed on [USAJobs.gov](https://www.usajobs.gov).
+An Angular and Leaflet.js app for browsing jobs listed on [USAJobs.gov](https://www.usajobs.gov).
 
 [Go here for a demo](http://aronsch.github.io/USAJobs-Job-Map-Angular/) using all components.
 
@@ -27,10 +27,4 @@ To start the app, define the following attributes on the app element:
 ```
 
 ## Limitations
-- Only retrieves the first 250 jobs from a query. 
-- Relies on geolocation services to get job location geodata. These are heavily rate and query limited.
-
-## TODO
-
-- Port to new USAJobs Data API.
-- Implement support for external geodata file.
+- Only retrieves the first 500 jobs from a query. 
