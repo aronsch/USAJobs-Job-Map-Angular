@@ -10,7 +10,7 @@
      *         - Map marker defaults provider
      */
 
-    // Map Service Declarations
+        // Map Service Declarations
     angular.module('UsaJobsApp').controller('JobMapController', JobMapController);
     angular.module('UsaJobsApp').directive('jobMap', jobMapDirective);
     angular.module('UsaJobsApp').factory('mapResetControl', mapResetControl);
@@ -22,9 +22,9 @@
     /**
      * Job Map Controller
      */
-    JobMapController.$inject = ['$scope', 'eventService', 'leaflet', 'JobLocation',
+    JobMapController.$inject = ['$scope', 'eventService', 'leaflet',
         'markers', 'Jobs'];
-    function JobMapController($scope, events, leaflet, JobLocation, markers, Jobs) {
+    function JobMapController($scope, events, leaflet, markers, Jobs) {
         /* Scope variables */
         $scope.jobs = Jobs;
         $scope.markers = []; // Marker tracking collection
@@ -32,12 +32,9 @@
         $scope.locations = []; // JobLocation tracking collection
 
         /* Event bindings */
-        events.jobs.onAvailable(onJobsResolved);
         events.jobs.onUpdateVisible(updateVisible);
         events.jobs.onQueryStarted(resetMarkers);
-        events.geodata.onAvailable(onGeodataAvailable);
-        events.geodata.onNotAvailable(onGeodataNotAvailable);
-        events.location.onSetAttribution(addGeocodeAttribution);
+        events.jobs.onAvailable(onJobsResolved);
 
         /* Public Function bindings */
         $scope.updateMarkers = updateMarkers;
@@ -52,52 +49,25 @@
         /* Functions */
 
         /** @private
-         * Called when Job resources resolves
+         * Called when Job query resolves
          */
         function onJobsResolved() {
-            // Set up job location data
-            angular.forEach($scope.jobs.JobData.locations, function (jobLoc, key) {
-                // Indicate that a geolocation request is pending
-                $scope.geodataStatus.addPending();
-                // Create Job Location object
-                $scope.jobs.JobData.locations[key] = new JobLocation(jobLoc);
-
-            });
             $scope.locations = $scope.jobs.JobData.locations;
+            handleGeodata();
+            updateMarkers();
+
         }
 
-        /**
-         * @private
-         * Add marker to map or update existing marker when new geodata becomes available.
-         * @param {Event} e
-         * @param {JobLocation} L
-         */
-        function onGeodataAvailable(e, L) {
-            updateMarkerForLoc(L);
-            $scope.geodataStatus.addResolved();
-            $scope.map.allMarkersBounds.extend([L.geodata.lat, L.geodata.lon]);
+        function handleGeodata() {
+            $scope.locationsNoGeodata = [];
 
-            // TODO: If the user hasn't touched the map, Show all markers
-            // by extending map view bounds intelligently as markers are added.
-        }
-
-        /**
-         * @private
-         * If a a JobLocation could not be geocoded, add to a list of
-         * locations without geodata that will be displayed in the map UI.
-         * @param {Event} e
-         * @param {JobLocation} L
-         */
-        function onGeodataNotAvailable(e, L) {
-            $scope.locationsNoGeodata.push(L);
-            $scope.locationsNoGeodata.updateJobCount();
-            $scope.geodataStatus.addResolved();
-        }
-
-        function addGeocodeAttribution(e, str) {
-            if (angular.isDefined($scope.map.attributionControl)) {
-                $scope.map.attributionControl.addAttribution(str);
-            }
+            angular.forEach($scope.locations, function (location) {
+                if (location.noGeodata)  {
+                    $scope.locationsNoGeodata.push(location);
+                } else {
+                    events.geodata.available(location);
+                }
+            });
         }
 
         /**
@@ -124,8 +94,9 @@
          */
         function updateMarkers() {
             angular.forEach($scope.locations, function (location) {
-                if (!location.geodata.$resolved) return;
-                updateMarkerForLoc(location);
+                if (!location.noGeodata) {
+                    updateMarkerForLoc(location);
+                }
             });
         }
 
@@ -140,7 +111,6 @@
         function updateVisible() {
 
             var show = [], hide = [];
-
             angular.forEach($scope.locations, function (location) {
                 var marker,
                     visibleCount = location.countVisible(),
@@ -185,8 +155,8 @@
         function addMarker(location) {
             var marker;
 
-            marker = leaflet.marker([location.geodata.lat, location.geodata.lon], {
-                title: location.name,
+            marker = leaflet.marker([location.Latitude, location.Longitude], {
+                title: location.LocationName,
                 icon: markers.markerIcon
             });
             marker.jobLocation = location;
@@ -265,7 +235,6 @@
             $scope.jobCountLayer.clearLayers();
             $scope.markers.length = 0;
             $scope.markerLookup = {};
-            $scope.geodataStatus.reset();
             $scope.locationsNoGeodata.length = 0;
         }
     }
@@ -276,8 +245,9 @@
      * @scope
      */
     jobMapDirective.$inject = ['$compile', 'leaflet', 'mapResetControl', 'mapShowAllControl',
-        'markers', 'settings', 'eventService'];
-    function jobMapDirective($compile, leaflet, mapResetControl, mapShowAllControl, markers, settings, events) {
+        'markers', 'settings', 'eventService', 'usStatesGeoJsonSetup'];
+    function jobMapDirective($compile, leaflet, mapResetControl, mapShowAllControl,
+                             markers, settings, events, geoJsonSetup) {
         return {
             restrict: 'E',
             controller: 'JobMapController',
@@ -290,32 +260,10 @@
                 // Extend scope with map properties
                 scope.mapOptions = settings.map;
 
-                // Add geodata tracking object
-                scope.geodataStatus = {
-                    loading: false,
-                    resolvedCount: 0,
-                    pendingCount: 0,
-                    addPending: function () {
-                        this.pendingCount += 1;
-                        this.loading = true;
-                    },
-                    addResolved: function () {
-                        this.resolvedCount += 1;
-                        if (this.resolvedCount === this.pendingCount) {
-                            this.loading = false;
-                        }
-                    },
-                    reset: function () {
-                        this.resolvedCount = 0;
-                        this.pendingCount = 0;
-                    }
-                };
-
-                // Add geodata tracking UI element
-                addGeodataStatusEl();
                 // Add No Geodata Available List
                 addNoGeolocList();
 
+                // compile any added ng templates
                 $compile(element.contents())(scope);
                 // Set up Leaflet map
                 scope.map = leafletMap();
@@ -323,16 +271,6 @@
                 /*
                  * Functions
                  */
-
-                function addGeodataStatusEl() {
-                    elStr = '';
-                    elStr += '<div class="geodata-status center-block" ng-show="geodataStatus.loading">';
-                    elStr += '<i class="fa fa-fw fa-circle-o-notch fa-spin"></i> {{ geodataStatus.resolvedCount }} of {{ geodataStatus.pendingCount }} job locations mapped';
-                    elStr += '</div>';
-                    var el = angular.element(elStr);
-
-                    element.append(el);
-                }
 
                 function addNoGeolocList() {
                     var el = '';
@@ -351,16 +289,16 @@
 
                     // TODO: implement as template in templateCache
                     el += '<div class="loc-no-geodata-list" ng-show="locationsNoGeodata.length > 0">';
-                    el += '<h5>{{ locationsNoGeodata.jobCount }} Job<span ng-hide="locationsNoGeodata.jobCount === 1">s</span> Not on Map <small><a ng-click="locationsNoGeodata.maximized = !locationsNoGeodata.maximized">{{locationsNoGeodata.maximized ? \'Hide\' : \'Show\' }}</a></small></h5>';
+                    el += '<h5>{{ locationsNoGeodata.jobCount }} Job<span ng-hide="locationsNoGeodata.jobCount === 1">s</span> Not Shown ';
+                    el += '<small><span class="btn btn-xs btn-info" style="margin-bottom: 0;" ng-click="locationsNoGeodata.maximized = !locationsNoGeodata.maximized">{{locationsNoGeodata.maximized ? \'Hide\' : \'Show\' }}</span></small></h5>';
                     el += '<div ng-show="locationsNoGeodata.maximized" class="loc-no-geodata-list-container">';
                     el += '<div ng-repeat="location in locationsNoGeodata">';
                     el += '<h6 class="small bold">{{location.name}}</h6>';
-                    el += '<p class="alert alert-warning small">{{ location.noGeodataReason }}</p>';
                     el += '<ul class="loc-popup-job-list list-unstyled">';
                     el += '<li class="loc-popup-job-list-item clearfix" ng-repeat="job in location.jobs">';
-                    el += '<a class="loc-popup-job-list-item-link" ng-href="{{ job.ApplyOnlineURL }}" target="_blank" title="{{ job.JobTitle }}\r\nView this job announcement on USAJobs.gov">{{ job.JobTitle }}</a>';
-                    el += '<span class="loc-popup-job-list-item-tag small" title="Grade">{{job.PayPlan + \'&#8209;\' + job.Grade}}</span>';
-                    el += '<span class="loc-popup-job-list-item-tag small" title="Salary">{{job.SalaryMin + \'&#8209;\' + job.SalaryMax | trailingzeroes}}</span>';
+                    el += '<a class="loc-popup-job-list-item-link" ng-href="{{ job.applyUrl() }}" target="_blank" title="{{ job.PositionTitle }}\r\nView this job announcement on USAJobs.gov">{{ job.PositionTitle }}</a>';
+                    el += '<span class="loc-popup-job-list-item-tag small" title="Grade">{{ job | gradeRangeDesc }}</span>';
+                    el += '<span class="loc-popup-job-list-item-tag small" title="Salary">{{job.salaryMinString + \'&#8209;\' + job.salaryMaxString}}</span>';
                     el += '</li>';
                     el += '</ul><hr>';
                     el += '</div>';
@@ -462,6 +400,9 @@
                     map.on('mousemove', handleInteractionStart);
                     map.on('mousedown', handleInteractionStart);
 
+                    // add map feature geodata
+                    geoJsonSetup(map);
+
                     /**
                      * @private
                      * Handler triggered on map `movestart` event
@@ -557,7 +498,7 @@
                      * @returns {Boolean}
                      */
                     function inBounds(loc) {
-                        return map.getBounds().contains([loc.geodata.lat, loc.geodata.lon]);
+                        return map.getBounds().contains([loc.Latitude, loc.Longitude]);
                     }
 
                     /**
@@ -567,7 +508,7 @@
                      * @returns {Boolean}
                      */
                     function inStartBounds(loc) {
-                        return map.startBounds.contains([loc.geodata.lat, loc.geodata.lon]);
+                        return map.startBounds.contains([loc.Latitude, loc.Longitude]);
                     }
 
                     /**
@@ -576,7 +517,7 @@
                      * @returns {Boolean}
                      */
                     function mapViewCentered() {
-                        // Determine if map ic centered. Allow for slight drift.
+                        // Determine if map is centered. Allow for slight drift.
                         return map.getCenter().distanceTo(scope.mapOptions.center) < 20000;
                     }
 
@@ -611,9 +552,8 @@
                          * On zoom level change, update job count circle size and transparency.
                          * Circles get larger as you zoom, but become increasingly transparent
                          * so that zoomed map details are not occluded.
-                         * @param {Event} e
                          */
-                        function handleZoomEnd(e) {
+                        function handleZoomEnd() {
                             var zoom = scope.map.getZoom();
                             if (zoom >= 4) {
                                 // adjust radius and opacity based on zoom
@@ -660,7 +600,7 @@
                     function addJobCountOverlay(location) {
                         var marker;
 
-                        marker = L.circleMarker([location.geodata.lat, location.geodata.lon], {
+                        marker = L.circleMarker([location.Latitude, location.Longitude], {
                             title: location.name,
                             zIndexOffset: -location.jobs.length,
                             radius: Math.round(scaledValue(location, 0, 22)),
@@ -712,7 +652,7 @@
             clusterContent: clusterContent,
             locationsInCluster: locationsInCluster,
             contentTopMargin: contentTopMargin
-        }
+        };
         // Marker popup functions.
         this.popups = {
             // Function Bindings
@@ -804,8 +744,7 @@
             thePopup = leaflet.popup({
                 maxWidth: 250,
                 autoPanPaddingTopLeft: leaflet.point(12, 78),
-                autoPanPaddingBottomRight: leaflet.point(12, 36),
-
+                autoPanPaddingBottomRight: leaflet.point(12, 36)
             });
 
             thePopup.setContent(this.contentForLoc(aLocation));
@@ -843,19 +782,19 @@
                 li = angular.element('<li class="loc-popup-job-list-item clearfix"></li>');
                 a = angular
                     .element('<a class="loc-popup-job-list-item-link"></a>')
-                    .attr('href', job.ApplyOnlineURL)
+                    .attr('href', job.applyUrl())
                     .attr('target', '_blank')
-                    .html(job.JobTitle.replace(/-/g, '&#8209;'))
-                    .attr('title', job.JobTitle +
+                    .html(job.title.replace(/-/g, '&#8209;'))
+                    .attr('title', job.title +
                         '\r\nView this job announcement on USAJobs.gov');
                 spanGrd = angular.element(
-                    '<span class="loc-popup-job-list-item-tag small"></span>').html(
-                    job.PayPlan + '&#8209;' + job.Grade).attr('title', 'Grade');
+                    '<span class="loc-popup-job-list-item-tag small"></span>')
+                    .html($filter('gradeRangeDesc')(job))
+                    .attr('title', 'Grade');
                 spanSal = angular.element(
                     '<span class="loc-popup-job-list-item-tag small"></span>')
-                    .html($filter('trailingzeroes')(
-                        job.SalaryMin + '&#8209;' + job.SalaryMax)).attr(
-                        'title', 'Salary');
+                    .html(job.salaryMinString + '&#8209;' + job.salaryMaxString)
+                    .attr('title', 'Salary');
                 li.append(a);
                 li.append(spanGrd);
                 li.append(spanSal);

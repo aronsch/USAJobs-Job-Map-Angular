@@ -28,7 +28,9 @@ module.exports = function (grunt) {
                     'js/src/UsaJobsApp.Table.js',
                     'js/src/UsaJobsApp.Map.js',
                     'js/src/UsaJobsApp.Filters.js',
-                    'js/src/UsaJobsApp.ExternalDependencies.js'
+                    'js/src/UsaJobsApp.ExternalDependencies.js',
+                    'js/src/UsaJobsApp.usStatesGeoJson.js',
+                    'js/src/UsaJobsApp.GeoJsonSelection.js'
                 ],
                 dest: 'js/dist/<%= pkg.name %>.js'
             }

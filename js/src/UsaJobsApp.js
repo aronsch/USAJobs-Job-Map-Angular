@@ -5,7 +5,7 @@
      * - Org Code Directive to bind controller
      * - Centralized event emission and subscription service
      */
-    angular.module('UsaJobsApp', [ 'MomentModule', 'LeafletModule', 'ui-rangeSlider']);
+    angular.module('UsaJobsApp', ['MomentModule', 'LeafletModule', 'ui-rangeSlider']);
 
     // App Module Service Declarations
     angular.module('UsaJobsApp').controller('UsaJobsAppController', AppController);
@@ -17,17 +17,24 @@
     /**
      * UsaJobsApp App Controller
      */
-    AppController.$inject = ['$scope', 'Jobs', 'eventService', 'settings'];
-    function AppController($scope, Jobs, Events, settings) {
+    AppController.$inject = ['$scope', 'Jobs', 'eventService', 'settings', '$rootScope'];
+    function AppController($scope, Jobs, Events, settings, $rootScope) {
+
+        $rootScope.isOldIE = isOldIE();
+        $rootScope.orgName = $scope.orgName;
+        $rootScope.orgSearchUrl = settings.usaJobs.searchBaseUrl + $scope.orgCode;
 
         $scope.jobs = Jobs;
+        $scope.scope = $scope;
 
         // Set Job service properties
         $scope.jobs.orgCode = $scope.orgCode;
         $scope.jobs.orgName = $scope.orgName;
-        $scope.orgSearchUrl = settings.usaJobs.searchBaseUrl + $scope.orgId;
+        $scope.jobs.vacNumFilter = $scope.vacNumFilter;
+        $scope.orgSearchUrl = $rootScope.orgSearchUrl;
         $scope.jobs.orgSearchUrl = $scope.orgSearchUrl;
 
+        //if ($scope.isOldIE) return; // end setup if not compatible
         // Get jobs
         $scope.jobs.getJobs();
 
@@ -52,6 +59,13 @@
             // broadcast notification that UI update is needed
             Events.jobs.updateVisible();
         }
+
+        function isOldIE() {
+            var div = document.createElement("div");
+            div.innerHTML = "<!--[if lte IE 9]><i></i><![endif]-->";
+            return (div.getElementsByTagName("i").length == 1);
+        }
+
     }
 
     /**
@@ -64,7 +78,8 @@
             restrict: 'A',
             scope: {
                 orgCode: '@',
-                orgName: '@'
+                orgName: '@',
+                vacNumFilter: '@'
             },
             controller: 'UsaJobsAppController'
         };
@@ -79,6 +94,7 @@
             jobs = this.jobs = {},
             geodata = this.geodata = {},
             location = this.location = {},
+            map = this.map = {};
             filters = this.filters = {};
 
         /* Event Names */
@@ -94,10 +110,15 @@
         names.location = {
             setAttribution: 'usajobs.events.location.set-geocoding-attribution'
         };
+        names.map = {
+            available: 'usajobs.events.map.available'
+        };
         names.filters = {
             changed: 'usajobs.events.filter-values-changed',
             cleared: 'usajobs.events.filter-values-cleared',
-            clear: 'usajobs.events.filter-clear-filters'
+            clear: 'usajobs.events.filter-clear-filters',
+            setStateFilter: 'usajobs.events.filter-set-state',
+            stateSelectionChange: 'usajobs.events.filter-select-state'
         };
         names.focus = {
             job: 'usajobs.events.focus-set-job',
@@ -105,8 +126,8 @@
         };
 
         /* Job Data Events */
-        jobs.available = function () {
-            broadcast(names.jobs.available);
+        jobs.available = function (data) {
+            broadcast(names.jobs.available, data);
         };
         jobs.onAvailable = function (handlerFn) {
             on(names.jobs.available, handlerFn);
@@ -128,22 +149,24 @@
         geodata.available = function (location) {
             broadcast(names.geodata.available, location);
         };
-        geodata.notAvailable = function (location) {
-            broadcast(names.geodata.notAvailable, location);
-        };
         geodata.onAvailable = function (handlerFn) {
             on(names.geodata.available, handlerFn);
         };
-        geodata.onNotAvailable = function (handlerFn) {
-            on(names.geodata.notAvailable, handlerFn);
-        };
 
-        /* Location Module Events */
+        /* Location Events */
         location.setAttribution = function (str) {
             broadcast(names.location.setAttribution, str);
         };
         location.onSetAttribution = function (handlerFn) {
             on(names.location.setAttribution, handlerFn);
+        };
+
+        /* Map Events */
+        map.available = function (map) {
+            broadcast(names.map.available, map);
+        };
+        map.onAvailable = function (handlerFn) {
+            on(names.map.available, handlerFn);
         };
 
         /* Job Data Filter Events */
@@ -153,17 +176,29 @@
         filters.onChanged = function (handlerFn) {
             on(names.filters.changed, handlerFn);
         };
-        filters.cleared = function (predicate) {
+        filters.cleared = function () {
             broadcast(names.filters.cleared);
         };
         filters.onCleared = function (handlerFn) {
             on(names.filters.cleared, handlerFn);
         };
-        filters.clear = function (predicate) {
+        filters.clear = function () {
             broadcast(names.filters.clear);
         };
         filters.onClear = function (handlerFn) {
             on(names.filters.clear, handlerFn);
+        };
+        filters.setStateFilter = function (stateName) {
+            broadcast(names.filters.setStateFilter, stateName);
+        };
+        filters.stateSelectionFromDropdown = function (stateName) {
+            broadcast(names.filters.stateSelectionChange, stateName);
+        };
+        filters.onStateFilter = function (handlerFn) {
+            on(names.filters.setStateFilter, handlerFn);
+        };
+        filters.onStateSelectionFromDropdown = function (handlerFn) {
+            on(names.filters.stateSelectionChange, handlerFn);
         };
 
         // broadcast an event on rootScope
