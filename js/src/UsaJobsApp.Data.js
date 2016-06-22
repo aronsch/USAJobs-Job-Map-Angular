@@ -8,7 +8,7 @@
      * - Provides Directive and Controller for element displaying total job results count and organization.
      */
 
-    // Data Service Declarations
+        // Data Service Declarations
 
     angular.module('UsaJobsApp').service('Jobs', Jobs);
     angular.module('UsaJobsApp').factory('Job', JobFactory);
@@ -27,8 +27,8 @@
     /**
      * USA Jobs Data Service
      */
-    Jobs.$inject = ['$http', 'settings', 'unique', 'Job', 'eventService'];
-    function Jobs($http, settings, unique, Job, Events) {
+    Jobs.$inject = ['$http', 'settings', 'unique', 'Job', 'JobLocation', 'eventService'];
+    function Jobs($http, settings, unique, Job, JobLocation, Events) {
 
         var self = this; // closure reference to `this` for callbacks
 
@@ -38,6 +38,7 @@
         this.orgCode = '';
         this.orgName = '';
         this.orgSearchUrl = '';
+        this.vacNumFilter = '';
 
         // Public Functions
         this.getJobs = getJobs;
@@ -49,7 +50,8 @@
         this.getMaxSalary = getMaxSalary;
         this.getMinSalary = getMinSalary;
         this.getPayPlans = getPayPlans;
-        this.getSeriesList = getSeriesList
+        this.getSeriesList = getSeriesList;
+        this.getPayTypeList = getPayTypeList;
 
         /**
          * @public
@@ -57,9 +59,9 @@
          */
         function getJobs() {
             // dispatch USAJobs query
-            this.query({
-                NumberOfJobs: 250,
-                OrganizationID: this.orgCode
+            self.query({
+                ResultsPerPage: 500,
+                Organization: self.orgCode
             });
         }
 
@@ -69,12 +71,14 @@
          * @param {Object} params
          */
         function query(params) {
-            this.resolved = false; // reset query status
-            this.JobData.length = 0; // remove current results
+            var options = angular.copy(settings.usaJobs.reqOptions);
+            options.params = params;
+
+            self.resolved = false; // reset query status
+            self.JobData.length = 0; // remove current results
             Events.jobs.queryStarted(); // emit query started event
-            $http.get(settings.usaJobs.baseUrl, {
-                params: params
-            }).success(queryResolved);
+
+            $http(options).success(queryResolved);
         }
 
         /**
@@ -85,7 +89,9 @@
         function queryResolved(data) {
             addJobResults(data);
             self.resolved = true; // set query status to resolved
-            Events.jobs.available(); // emit jobs available event
+            Events.jobs.available(self.JobData); // emit jobs available event
+
+            console.log(self.getPayTypeList());
         }
 
         /**
@@ -94,12 +100,35 @@
          * @param data {Object}
          */
         function addJobResults(data) {
-            angular.forEach(data.JobData, function (item, idx) {
+            data = filterResultsByVac(data);
+            // extend job objects
+            angular.forEach(data, function (item) {
                 self.JobData.push(new Job(item));
-            }, this);
+            });
             groupByLocation(self.JobData);
             hasAlphaGrades();
 
+        }
+
+        /**
+         * @private
+         * Filter results by vacancy prefix, if set
+         * @param data
+         */
+        function filterResultsByVac(data) {
+            if (angular.isDefined(self.vacNumFilter) && self.vacNumFilter.length) {
+                var vacancyRe = new RegExp('^' + self.vacNumFilter, 'i'), // prefix RegEx
+                    filtered = []; // filtered results collection
+
+                angular.forEach(data, function (job) {
+                    if (vacancyRe.test(job.PositionID)) {
+                        filtered.push(job);
+                    }
+                });
+                return filtered;
+            } else {
+                return data;
+            }
         }
 
         /**
@@ -122,7 +151,7 @@
          * @param {Array.<Object>} jobs
          */
         function groupByLocation(jobs) {
-            var placeNames = [],
+            var locationsArr = [],
                 stateNames = [];
             jobs.locations = {};
             jobs.states = {};
@@ -130,21 +159,20 @@
             jobs.locMinJobCount = 0;
 
             angular.forEach(jobs, function (job) {
-                // append any place names from the job
-                Array.prototype.push.apply(placeNames, job.locationArray);
+                // append any locations from the job
+                Array.prototype.push.apply(locationsArr, job.locations);
             });
-            // remove duplicates
-            placeNames = unique(placeNames);
+            // remove duplicate locations
+            locationsArr = unique(locationsArr);
+
             // create location keys and objects
-            angular.forEach(placeNames, function (placeName) {
-
+            angular.forEach(locationsArr, function (location) {
+                // trim location name (some results seem to have location names with extra whitespace)
+                location.LocationName = location.LocationName.trim();
                 // create location info object
-                jobs.locations[placeName] = {
-                    name: placeName,
-                    jobs: []
-                };
+                jobs.locations[location.LocationName] = new JobLocation(location);
 
-                stateNames.push(placeName.replace(/.*,\s/, ''));
+                stateNames.push(location.CountrySubDivisionCode);
             });
 
             // add jobs to location job collections
@@ -152,14 +180,14 @@
                 angular.forEach(jobs.locations, function (location, key) {
                     // check if location name is contained in string list of
                     // job locations
-                    if (job.Locations.indexOf(key) > -1) {
+                    if (job.locationNames().indexOf(location.LocationName) > -1) {
                         location.jobs.push(job);
                     }
                 });
             });
 
             // Get a count of the most jobs and least jobs at a single location
-            angular.forEach(jobs.locations, function (location, key) {
+            angular.forEach(jobs.locations, function (location) {
                 if (location.jobs.length > jobs.locMaxJobCount) {
                     jobs.locMaxJobCount = location.jobs.length
                 }
@@ -182,7 +210,7 @@
                 angular.forEach(jobs, function (job) {
                     // check if state name is contained in string list of
                     // job locations
-                    if (job.Locations.indexOf(key) > -1) {
+                    if (job.locations.indexOf(key) > -1) {
                         state.jobs.push(job);
                     }
                 });
@@ -201,9 +229,9 @@
             var grades = [];
 
             // protect against returning divide-by-zero/infinty
-            if (this.JobData.length === 0) return 0;
+            if (self.JobData.length === 0) return 0;
 
-            angular.forEach(this.JobData, function (job) {
+            angular.forEach(self.JobData, function (job) {
                 grades.push(job.gradeHighest());
             }, this);
             // return max,
@@ -220,9 +248,9 @@
             var grades = [];
 
             // protect against returning divide-by-zero/infinty
-            if (this.JobData.length === 0) return 0;
+            if (self.JobData.length === 0) return 0;
 
-            angular.forEach(this.JobData, function (job) {
+            angular.forEach(self.JobData, function (job) {
                 grades.push(job.gradeLowest());
             }, this);
             // return min,
@@ -238,9 +266,9 @@
         function getMaxSalary() {
             var salaries = [];
 
-            if (this.JobData.length === 0) return 0;
+            if (self.JobData.length === 0) return 0;
 
-            angular.forEach(this.JobData, function (job) {
+            angular.forEach(self.JobData, function (job) {
                 salaries.push(job.salaryHighest());
             }, this);
             return Math.max.apply(this, salaries);
@@ -254,13 +282,13 @@
         function getMinSalary() {
             var salaries = [];
 
-            if (this.JobData.length === 0) return 0;
+            if (self.JobData.length === 0) return 0;
 
-            angular.forEach(this.JobData, function (job) {
+            angular.forEach(self.JobData, function (job) {
                 salaries.push(job.salaryLowest());
-            }, this);
+            }, self);
 
-            return Math.min.apply(this, salaries);
+            return Math.min.apply(self, salaries);
         }
 
         /**
@@ -274,7 +302,7 @@
             // protect against returning divide-by-zero/infinty
             if (jobs.length === 0) return 0;
             angular.forEach(jobs, function (job) {
-                grades.push(job.PayPlan);
+                grades.push(job.payPlan());
             });
 
             // remove duplicates and return
@@ -287,15 +315,36 @@
          * @return {Array}
          */
         function getSeriesList() {
-            var series = []
+            var series = [];
 
-            // push all Series values to series array
-            angular.forEach(this.JobData, function (job) {
-                series.push(job.Series);
+            // push all Series objects to series array
+            angular.forEach(self.JobData, function (job) {
+                Array.prototype.push.apply(series, job.JobCategory);
             });
 
             // remove duplicates and return
             return unique(series);
+        }
+
+        /**
+         * @public
+         * Return an array of all Job Sereies listed in the job results.
+         * @return {Array}
+         */
+        function getPayTypeList() {
+            var payTypes = [];
+
+            // push all Series objects to series array
+            angular.forEach(self.JobData, function (job) {
+                Array.prototype.push.apply(payTypes, job.PositionRemuneration);
+            });
+
+            payTypes = payTypes.map(function (obj) {
+                return obj.RateIntervalCode;
+            });
+
+            // remove duplicates and return
+            return unique(payTypes);
         }
 
     }
@@ -308,31 +357,65 @@
         /** @constructor */
         function Job(jobData) {
             var now = moment(),
-                dateFm = settings.usaJobs.dateFormat;
+                dateFm = settings.usaJobs.dateFormat,
+                self = this;
 
             angular.extend(this, jobData); // attach USAJobs job properties
 
-            // Statically rendered properties to speed up DOM rendering
-            // when there are lots of elements being added or removed.
-            this.daysRemaining = moment(this.EndDate, dateFm).diff(now, 'days');
-            this.daysOpen = moment(now).diff(moment(this.StartDate, dateFm), 'days');
-            this.endDateDescription = $filter('datedescription')(this.EndDate);
-            this.salaryRange = $filter('trailingzeroes')(this.SalaryMin + " to " + this.SalaryMax);
-            this.salaryMaxInt = parseInt(this.SalaryMax.replace('$', ''));
-            this.salaryMinInt = parseInt(this.SalaryMin.replace('$', ''));
-            this.title = this.JobTitle;
-            this.locationArray = this.Locations.split(/;/g);
-            this.locationArrayCompact = [];
+            this.title = this.PositionTitle;
+            this.locations = this.PositionLocation;
 
-            angular.forEach(this.locationArray, function (item) {
-                this.locationArrayCompact.push($filter('stateAbbreviation')(item));
-            }, this);
+            // Static rendered properties to speed up DOM rendering
+
+            // date strings and descriptions
+            this.startDate = moment(this.PositionStartDate, dateFm).format(settings.dateDispFormat);
+            this.daysRemaining = moment(this.PositionEndDate, dateFm).diff(now, 'days');
+            this.daysOpen = moment(now).diff(moment(this.PositionStartDate, dateFm), 'days');
+            this.endDateDescription = $filter('datedescription')(this.PositionEndDate);
+
+            // array of state names
+            this.locations.states = this.locations.map(function (location) {
+                return location.CountrySubDivisionCode;
+            });
+            this.locations.sortValue = this.locations.map(function (location) {
+                return location.CountrySubDivisionCode + location.LocationName;
+            }).join(';');
+
+            // array of location names with postal abbreviations for states
+            this.locationArrayCompact = this.locations.map(function (location) {
+                return location.CityName.replace(/,.*/, '') + ', '
+                    + $filter('stateAbbreviation')(location.CountrySubDivisionCode);
+            });
+
+            // salary as int values for filtering
+            this.salaryMinInt = parseInt(this.PositionRemuneration[0].MinimumRange);
+            this.salaryMaxInt = parseInt(this.PositionRemuneration[0].MaximumRange);
+
+            // salary values rendered as currency string
+            this.salaryMinString = currencyFormat(this.PositionRemuneration[0].MinimumRange);
+            this.salaryMaxString = currencyFormat(this.PositionRemuneration[0].MaximumRange);
+
+            // description of salary range
+            this.salaryRange = this.salaryMinString + " to " + this.salaryMaxString
+                + (isHourly() ? '/hour' : '');
+
 
             // Concatenate all values as strings for search term matching.
             this.concatenatedValues = '';
             angular.forEach(jobData, function (v) {
                 this.concatenatedValues += v + ' | ';
             }, this);
+
+
+            // util function to render currency string
+            function currencyFormat(input) {
+                // Include cents for hourly positions.
+                return $filter('currency')(input, '$', isHourly() ? 2 : 0);
+            }
+
+            function isHourly() {
+                return self.PositionRemuneration[0].RateIntervalCode === 'Per Hour';
+            }
         }
 
         /* Prototype Properties */
@@ -341,9 +424,11 @@
 
         /* Prototype Function Bindings */
         Job.prototype.setVisibleWithPredicate = setVisibleWithPredicate;
+        Job.prototype.locationNames = jobLocationNames;
         Job.prototype.hourly = hourly;
         Job.prototype.salaried = salaried;
         Job.prototype.gradeRangeDesc = gradeRangeDesc;
+        Job.prototype.payPlan = payPlan;
         Job.prototype.gradeLowest = gradeLowest;
         Job.prototype.gradeHighest = gradeHighest;
         Job.prototype.gradeLowestInt = gradeLowestInt;
@@ -354,6 +439,9 @@
         Job.prototype.salaryInRange = salaryInRange;
         Job.prototype.gradeInRange = gradeInRange;
         Job.prototype.toggleDescription = toggleDescription;
+        Job.prototype.applyUrl = function () {
+            return this.ApplyURI[0];
+        };
 
         /* Function Definitions */
 
@@ -363,7 +451,7 @@
          */
         function toggleDescription() {
             this.showDescription = !this.showDescription;
-        };
+        }
 
         /* Job Prototype Function Definitions */
 
@@ -383,13 +471,19 @@
             }
         }
 
+        function jobLocationNames() {
+            return this.locations.map(function (loc) {
+                return loc.LocationName;
+            });
+        }
+
         /**
          * @public
          * Determine if the job is hourly.
          * @returns {Boolean}
          */
         function hourly() {
-            return this.SalaryBasis === 'Per Hour';
+            return this.PositionRemuneration[0].RateIntervalCode === 'Per Hour';
         }
 
         /**
@@ -398,7 +492,7 @@
          * @returns {Boolean}
          */
         function salaried() {
-            return this.SalaryBasis === 'Per Year';
+            return this.PositionRemuneration[0].RateIntervalCode === 'Per Year';
         }
 
         /**
@@ -415,7 +509,11 @@
             }
             // return single grade if high grade is the same: 'GS 07'
             // return range description if high grade is different: 'GS 07 to 09'
-            return this.PayPlan + ' ' + low + (low !== high ? ' to ' + high : '');
+            return this.payPlan() + ' ' + low + (low !== high ? ' to ' + high : '');
+        }
+
+        function payPlan() {
+            return this.JobGrade[0].Code;
         }
 
         /**
@@ -424,7 +522,7 @@
          * @returns {String}
          */
         function gradeLowest() {
-            return this.Grade.split('/')[0];
+            return this.UserArea.Details.LowGrade;
         }
 
         /**
@@ -434,13 +532,7 @@
          * @returns {String}
          */
         function gradeHighest() {
-            // if grade listing contains only one grade, return that grade
-            var str = this.Grade.split('/')[1];
-            if (str === this.gradeLowest()) {
-                return this.gradeLowest();
-            } else {
-                return str;
-            }
+            return this.UserArea.Details.HighGrade;
         }
 
         /**
@@ -476,17 +568,17 @@
          * Return the lowest salary listed for the job.
          * @returns {Number}
          */
-        function salaryLowest() {
-            return parseSalary(this.SalaryMin);
+        function salaryHighest() {
+            return this.PositionRemuneration[0].MaximumRange;
         }
 
         /**
          * @public
-         * Return the highest salary listed for the job.
+         * Return the lowest salary listed for the job.
          * @returns {Number}
          */
-        function salaryHighest() {
-            return parseSalary(this.SalaryMax);
+        function salaryLowest() {
+            return this.PositionRemuneration[0].MinimumRange;
         }
 
         /**
@@ -513,17 +605,6 @@
             var low = this.gradeLowestInt(),
                 high = this.gradeHighestInt();
             return (low >= min || high >= min) && (high <= max || low <= max);
-        }
-
-        /**
-         * @private
-         * Clean salary string and return parsed number.
-         * @param str {String}
-         * @returns {String}
-         */
-        function parseSalary(str) {
-            // remove currency symbol and letters, then parse to number
-            return parseFloat(str.replace(/[$,a-z]/gi, ''));
         }
 
         /**
@@ -574,7 +655,8 @@
         $scope.showAdvancedFilters = false;
         $scope.filters = {};
         $scope.filters.filterStatus = $scope.jobs.JobData.filterStatus = {
-            active: false
+            active: false,
+            reset: reset
         };
 
         /*
@@ -588,8 +670,8 @@
                 if (this.value === '') {
                     return true;
                 } else {
-                    // return true if string is found in concatenated values
-                    return job.concatenatedValues.indexOf(this.value) > -1;
+                    // Test for string in concatenated values
+                    return new RegExp(this.value, 'gi').test(job.concatenatedValues);
                 }
             },
             reset: function (triggerUpdate) {
@@ -692,7 +774,7 @@
             predicate: function (job) {
                 if (this.value === null) {
                     return true;
-                } else if (job.Locations.indexOf(this.value.name) > -1) {
+                } else if (job.locations.states.indexOf(this.value.name) > -1) {
                     return true;
                 } else {
                     return false;
@@ -700,12 +782,18 @@
             },
             reset: function (triggerUpdate) {
                 this.value = null;
+                stateSelectionFromDropdown({name: ''});
                 if (triggerUpdate) $scope.filter();
             },
             isActive: function () {
                 return this.value !== null;
+            },
+            setState: function (e, stateName) {
+                $scope.filters.state.value = $scope.jobs.JobData.states[stateName] || null;
+                filter();
+                $scope.$apply();
             }
-        }
+        };
 
         /* Public Function Bindings */
         $scope.update = update;
@@ -714,6 +802,7 @@
         $scope.filter = filter;
         $scope.toggleAdvancedFilters = toggleAdvancedFilters;
         $scope.filters.setFiltersActive = setFiltersActive;
+        $scope.stateSelectionFromDropdown = stateSelectionFromDropdown;
 
         /* Event Handling Setup*/
         setWatches();
@@ -731,7 +820,7 @@
 
             var maxGrade = $scope.jobs.getMaxGrade(),
                 minGrade = $scope.jobs.getMinGrade(),
-            // set max salary in range to near higher integer
+            // set max salary in range to nearest higher integer
                 maxSalary = Math.ceil($scope.jobs.getMaxSalary()),
             // set min salary in range to near lower integer
                 minSalary = Math.floor($scope.jobs.getMinSalary());
@@ -841,12 +930,13 @@
             events.filters.onClear(reset);
             // watch for `Esc` keypress
             angular.element(document).keyup(handleKeyPress);
+            events.filters.onStateFilter($scope.filters.state.setState);
         }
 
         /**
          * @private
          * Handle keypress events
-         * @param {Event}
+         * @param {Event} e
          */
         function handleKeyPress(e) {
             // Check for `Esc` keypress
@@ -874,6 +964,15 @@
             $scope.reset();
             $scope.filter();
         }
+
+        /**
+         * @private
+         * Emit "state" selection event
+         * @param state
+         */
+        function stateSelectionFromDropdown(state) {
+            events.filters.stateSelectionFromDropdown(state || $scope.filters.state.value)
+        }
     }
 
     /**
@@ -897,6 +996,7 @@
         $scope.jobs = Jobs;
         $scope.filterStatus = $scope.jobs.JobData.filterStatus;
         $scope.visibleCount = $scope.jobs.JobData.visibleCount;
+        $scope.reset = $scope.jobs.JobData.filterStatus.reset;
     }
 
     /**

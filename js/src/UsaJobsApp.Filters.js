@@ -4,8 +4,9 @@
      */
 
 
-    // Filter Declarations
+        // Filter Declarations
     angular.module('UsaJobsApp').filter('grade', usaJobsGradeFilter);
+    angular.module('UsaJobsApp').filter('gradeRangeDesc', usaJobsGradeRangeDesc);
     angular.module('UsaJobsApp').filter('trailingzeroes', trailingZeroesFilter);
     angular.module('UsaJobsApp').filter('datedescription', dateDescriptionFilter);
     angular.module('UsaJobsApp').filter('stateAbbreviation', statePostalAbbreviationFilter);
@@ -25,6 +26,18 @@
                 output = '0' + output;
             }
             return output;
+        };
+    }
+
+    /**
+     * Pay Grade Description Filter
+     * @returns {Function} returns filter function.
+     */
+    function usaJobsGradeRangeDesc() {
+        return function (job) {
+            // Return description of grade range. If lowest & highest grades are the same, return only that grade
+            return job.payPlan() + ' '
+                + job.gradeLowest() + (job.gradeLowest() !== job.gradeHighest() ? ' to ' + job.gradeHighest() : '');
         };
     }
 
@@ -68,24 +81,17 @@
      */
     statePostalAbbreviationFilter.$inject = ['stateAbbreviationValues'];
     function statePostalAbbreviationFilter(stateAbbr) { // inject State abbreviation data
-        return function filter(input, style) {
-            var state, re;
+        return function filter(state, style) {
             // iterate through state names
-            for (state in stateAbbr) {
-                // construct regex matching state name after comma
-                re = new RegExp(',.*' + state, 'i');
-                // test for state name in input
-                if (input.indexOf(state) !== -1) {
-                    // exit and return modified input string if found
-                    if (style === 'AP') {
-                        return input.replace(re, ', ' + stateAbbr[state].apStyle);
-                    } else {
-                        return input.replace(re, ', ' + stateAbbr[state].postal);
-                    }
+            if(stateAbbr[state]) {
+                if (style === 'AP') {
+                    return stateAbbr[state].apStyle;
+                } else {
+                    return stateAbbr[state].postal;
                 }
+            } else {
+                return state;
             }
-            // return unchanged input if there is no match
-            return input;
         }
     }
 

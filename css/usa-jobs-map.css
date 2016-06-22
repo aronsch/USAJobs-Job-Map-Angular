@@ -65,104 +65,6 @@ div.usajobs-table-column-titles {
     border-bottom: 1px #F9F9F9 solid;
 }
 
-@media (max-width: 767px) {
-	.usa-jobs-refresh-btn {
-		display: block;
-		float: none !important;
-		clear: both;
-		width: 100%;
-		padding: 6px;
-	}
-	
-	.usajobs-filters-advanced-btn {
-		padding: 10px;
-	}
-	
-	.usajobs-table-column-titles .fa:hover {
-		text-decoration: none !important;
-	}
-	
-	.job-filter label,
-	.usajobs-vac-count {
-		font-size: 80%;
-	}
-	
-	.usajobs-jobs-table-list-item-title .fa {
-		display: none;
-	}
-	
-	.usajobs-table-column-titles .fa {
-		float: right;
-		font-size: 120%;
-	}
-	
-	.usajobs-btn-clear {
-		padding: 2px 8px;
-		min-width: 50%;
-		float: right;
-	}
-	.usajobs-sortbutton {
-		display: inline-block;
-		width: 100%;
-		padding: 4px;
-		background-color: #F9F9F9;
-		border: 1px #E8E8E8 solid;
-		border-radius: 4px;
-	}
-	
-	.usajobs-sortbutton.usajobs-active {
-		background-color: #337ab7;
-		color: #FFF;
-	}
-	
-	a.usajobs-active {
-		text-decoration: none !important;
-	}
-	
-	.usajobs-table-item-job-details dl {
-		margin-bottom: 4px !important;
-	}
-	.usajobs-table-item-job-details dl dt {
-		float: left;
-		width: 66px
-	}
-	
-	.leaflet-control-attribution {
-		max-width: 66%;
-	}
-	
-	.leaflet-popup-content {
-		max-width: 175px;
-	}
-	
-	ul.loc-popup-job-list {
-		max-height: 125px !important;
-	}
-	
-	.ngrs-handle {
-		border-radius: 15px !important;
-	}
-	.ngrs-handle,
-	.ngrs-handle i {
-		height: 44px !important;
-		width: 44px !important;
-	}
-	
-	.ngrs-range-slider .ngrs-runner {
-		margin: 0 35px 0 9px !important;
-	}
-	
-	.ngrs-runner {
-		height: 44px !important
-	}
-	
-	input[type="text"],
-	select {
-		height: 44px !important;
-	}
-}
-
-
 /**
  * Job Filter
  */
@@ -193,11 +95,11 @@ div.usajobs-table-column-titles {
 	background-image: linear-gradient(#CCCCCC, #C9C9C9) !important;
 }
 .usajobs-grade-filter .ngrs-range-slider {
-	margin-bottom: 0px !important;
+	margin-bottom: 0 !important;
 }
 .ngrs-range-slider {
-	margin-top: 0px !important;
-	margin-bottom: 0px;
+	margin-top: 0 !important;
+	margin-bottom: 0;
 }
 .ngrs-value {
 	padding-top: 2px !important;
@@ -209,7 +111,7 @@ div.usajobs-table-column-titles {
 
 .usajobs-table-column-titles dl {
 	margin-bottom: 10px;
-	padding-right: 0px !important;
+	padding-right: 0 !important;
 }
 
 /* Reduce bottom margin on job table job details*/
@@ -380,6 +282,86 @@ a.bg-primary-link {
 	background-color: transparent;
 }
 
+@media (max-width: 568px) {
+    .usa-jobs-refresh-btn {
+        display: block;
+        float: none !important;
+        clear: both;
+        width: 100%;
+        padding: 6px;
+        text-align: center;
+    }
+
+    .usajobs-filters-advanced-btn {
+        padding: 10px;
+    }
+
+    .usajobs-table-column-titles .fa:hover {
+        text-decoration: none !important;
+    }
+
+    .job-filter label,
+    .usajobs-vac-count {
+        font-size: 80%;
+    }
+
+    .usajobs-jobs-table-list-item-title .fa {
+        display: none;
+    }
+
+    .usajobs-table-column-titles .fa {
+        float: right;
+        font-size: 120%;
+    }
+
+    .usajobs-btn-clear {
+        padding: 2px 8px;
+        min-width: 50%;
+        float: right;
+    }
+    .usajobs-sortbutton {
+        display: inline-block;
+        width: 100%;
+        padding: 4px;
+        background-color: #F9F9F9;
+        border: 1px #E8E8E8 solid;
+        border-radius: 4px;
+    }
+
+    .usajobs-sortbutton.usajobs-active {
+        background-color: #337ab7;
+        color: #FFF;
+    }
+
+    a.usajobs-active {
+        text-decoration: none !important;
+    }
+
+    .usajobs-table-item-job-details dl {
+        margin-bottom: 4px !important;
+    }
+    .usajobs-table-item-job-details dl dt {
+        float: left;
+        width: 66px
+    }
+
+    .leaflet-control-attribution {
+        max-width: 66%;
+    }
+
+    .leaflet-popup-content {
+        max-width: 175px;
+    }
+
+    ul.loc-popup-job-list {
+        max-height: 125px !important;
+    }
+
+}
+
+.pointer {
+    cursor: pointer;
+}
 
 /**
  * 	Angular RangeSlider SCSS
