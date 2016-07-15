@@ -5,6 +5,7 @@ An Angular and Leaflet.js app for browsing jobs listed on [USAJobs.gov](https://
 [Go here for a demo](http://aronsch.github.io/USAJobs-Job-Map-Angular/) using all components.
 
 ## Usage
+The current USAJobs Job Search API [requires an API key](https://developer.usajobs.gov/Search-API/Request-API-Key).
 
 The app has four modular UI components:
 - `<job-map></job-map>` to display the jobs on a [Leaflet.js](http://leafletjs.com) map.
