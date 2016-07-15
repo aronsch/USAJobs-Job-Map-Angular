@@ -19,7 +19,8 @@
                     method: 'GET',
                     url: 'https://data.usajobs.gov/api/search',
                     headers: {
-                        'Authorization-Key': 'M05yaoU7zXr5lFyMnBQZoCLNfdKQZ8Js3F31ywwnOk8='
+                        'Authorization-Key': '' // replace with your API Key
+                        // Go to developer.usajobs.gov/Search-API/Request-API-Key to request an API key
                     },
                     transformResponse: function (data) {
                         // return results array as response
